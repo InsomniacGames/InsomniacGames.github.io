@@ -1,0 +1,23 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>Lighting in The Division uses what Ubisoft describes as precomputed radiance transfer probes to calculate indirect illumination at runtime. These probes are placed about four meters apart along the ground and building surfaces. They store data that is precomputed from scene geometry. This technique allows dynamic lighting to be calculated from static objects and applied to all the objects in the scene.</p>
+<p>Each probe stores data that is similar to a low resolution G buffer cubemap. This data can be combined with dynamic lights at runtime the same way a deferred engine applies lighting to its scene G buffer. The resulting data represents the incoming light at the location of each probe.</p>
+<p>Probes don’t store G buffer data directly. Instead, they reference surfels which are points of surface information that may be shared among probes. The Division appears to have about 56 surfels per probe. The degree to which probes share surfels can be varied to trade performance for lighting accuracy.</p>
+<p>Each frame, lighting is calculated for a set of surfels. Data for static lighting is cached which reduces per-frame computation. Multiple light bounces are handled by storing information about the probe nearest a surfel and using that probe’s lighting data when applying lighting to surfels.</p>
+<p>After lighting data is calculated for surfels, their contribution is summed for each probe and stored in a 3D texture. There are separate volumes for interior and exterior probes and artist-placed volumes are used to select which pixels are interior or exterior. This prevents some light bleeding.</p>
+<p>Insomniac uses precomputed irradiance volumes with samples that are significantly denser than the Ubisoft approach. Our data is computed completely offline, but is calculated in a similar way to the Ubisoft technique. Unlike Ubisoft, we use per-sample data to prevent light leaking. Our approach may provide more general purpose protection against light leaks at the expense of more time spent sampling the lighting data.</p>
+<p>Similarly to our technique, distant lighting in The Division is stored in a large 2D texture. Unlike our technique which stores sky contribution and bounced light, Ubisoft only stores sky contribution.</p>
+<p>The Ubisoft implementation of precomputed radiance transfer is especially interesting because it has many similarities to our own GI implementation. Their experience provides an outline of one direction we could take toward real-time GI and demonstrates the results possible with a lower sampling resolution than we currently use.</p>
+<p>See: <a href="http://mrakobes.com/Nikolay.Stefanov.GDC.2016.pdf" class="uri">http://mrakobes.com/Nikolay.Stefanov.GDC.2016.pdf</a></p>
+<p>-- Bob Sprentall (Engine Programmer)</p>
+</body>
+</html>

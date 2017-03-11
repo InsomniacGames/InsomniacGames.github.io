@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["AMSsymbols.js"] },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<h1 id="figuring-out-vector-conventions-from-code">Figuring out vector conventions from code</h1>
+<p>Sometimes you find yourself in codebases you’re unfamiliar with, trying to make changes to 3D math code. It’s better if we try to understand the conventions used in the codebase rather than wasting time trying various combinations of transformation orders until we stumble upon something that happens to work.</p>
+<p>A lot of the confusion comes from the choice of row or column vectors and the resulting matrix transformation orders. You should read Fabian Giesen’s excellent post [1] about this subject.It follows from Fabian’s post that you can deduce the vector conventions used if you see a transform concatenation taking place in the existing code. Consider a model that is to be transformed from its local space into camera space via world space. We have two basic homogeneous 4x4 matrices involved:</p>
+<ul>
+<li><p><span class="math inline"><em>M</em><sub><em>M</em><em>o</em><em>d</em><em>e</em><em>l</em> → <em>W</em><em>o</em><em>r</em><em>l</em><em>d</em></sub></span></p></li>
+<li><p><span class="math inline"><em>M</em><sub><em>W</em><em>o</em><em>r</em><em>l</em><em>d</em> → <em>C</em><em>a</em><em>m</em><em>e</em><em>r</em><em>a</em></sub></span></p></li>
+</ul>
+<p>We can glean one piece of information from how those matrices are combined to form a composite transform that accomplishes both.</p>
+<p>If you see composite transformation matrix being computed like this:</p>
+<p><span class="math inline"><em>M</em><sub><em>M</em><em>o</em><em>d</em><em>e</em><em>l</em> → <em>C</em><em>a</em><em>m</em><em>e</em><em>r</em><em>a</em></sub> = <em>M</em><sub><em>M</em><em>o</em><em>d</em><em>e</em><em>l</em> → <em>W</em><em>o</em><em>r</em><em>l</em><em>d</em></sub><em>M</em><sub><em>W</em><em>o</em><em>r</em><em>l</em><em>d</em> → <em>C</em><em>a</em><em>m</em><em>e</em><em>r</em><em>a</em></sub></span></p>
+<p>And a point is later transformed like this:</p>
+<p><br /><span class="math display"><em>p</em><sub>camera</sub> = <em>p</em><sub>model</sub><em>M</em><sub><em>M</em><em>o</em><em>d</em><em>e</em><em>l</em> → <em>C</em><em>a</em><em>m</em><em>e</em><em>r</em><em>a</em></sub></span><br /></p>
+<p>You can be reasonably sure that the codebase treats vectors as 1x4 matrices (row vectors) which go on the left when multiplying.</p>
+<p>If the two matrices are multiplied in the reverse order, you can assume that the convention is to treat vectors as 4x1 matrices (column vectors), which go on the right when multiplying.</p>
+<p>All this means is that when you’re trying to figure out where to slot in your additional transformation, you should think about the “transformation pipeline” of matrix multiplication pairs like this:</p>
+<ul>
+<li><p>Row vectors used: <strong>point</strong> <strong>xform1</strong> <strong>xform2</strong> <strong>xform3</strong> …</p></li>
+<li><p>Column vectors used: … <strong>xform3</strong> <strong>xform2</strong> <strong>xform1</strong> <strong>point</strong></p></li>
+</ul>
+<p>Understanding the convention means can pretty easily see where to insert your added transformation in the chain. Note that regardless of the convention used, the point being transformed enters the pipeline and is transformed by the first transform, then the second. The steps are the same. But the order in which the matrices are multiplied is reversed.</p>
+<p>Also, note that the above doesn’t have anything to do with in-memory storage order of the matrices. Whether we store the matrices in column or row-major order in memory doesn’t affect the above discussion at all. A matrix multiply will always dot the rows of the left hand side with the columns of the right hand side, regardless of how those numbers that make up those rows and columns are stored in memory. Fabian covers that subject in much better detail than I can in his post [1].</p>
+<p>However, there is another important implication that comes from the choice of row or column vectors: it affects what parts of our matrices we consider the basis vectors:</p>
+<ul>
+<li><p>If we choose row vectors, and multiply <em>vAB</em>, then the matrices <em>A</em>/<em>B</em> must have their basis vectors in the <strong>rows</strong>.</p></li>
+<li><p>If we instead choose column vectors and multiply <em>BAv</em>, the result only makes sense if the matrices <em>A</em>/<em>B</em> have their basis vectors in the <strong>columns</strong>.</p></li>
+</ul>
+<p>Again, this is not talking about memory layout order of the rows or columns, but simply something that falls out of the choice of row or column vectors and the order of transformations.</p>
+<p>We can visualize this clearly in pure mathematical notation. I’ll use 3x3 matrices for clarity. Let’s start with the case where we treat vectors as row matrices:</p>
+<p><br /><span class="math display">$$\begin{bmatrix}
+1 &amp; 0 &amp; 0 \\
+\end{bmatrix}\begin{bmatrix}
+0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; - 1 \\
+1 &amp; 0 &amp; 0 \\
+\end{bmatrix} = \begin{bmatrix}
+0 &amp; 1 &amp; 0 \\
+\end{bmatrix}$$</span><br /></p>
+<p>Here we’re transforming a vector <span class="math inline">$\begin{bmatrix}
+1 &amp; 0 &amp; 0 \\
+\end{bmatrix}$</span> by a very simple 3x3 matrix that just swaps some axes around. Because the vector is simply a unit length along the <em>x</em> axis, we expect it to just pick out the basis vector of the new space. The basis vector it picks is the first row of the matrix.</p>
+<p>If we flip the thing around, and treat the vector as a column matrix, we have a different situation:</p>
+<p><br /><span class="math display">$$\begin{bmatrix}
+0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; - 1 \\
+1 &amp; 0 &amp; 0 \\
+\end{bmatrix}\begin{bmatrix}
+1 \\
+0 \\
+0 \\
+\end{bmatrix} = \begin{bmatrix}
+0 &amp; 0 &amp; 1 \\
+\end{bmatrix}$$</span><br /></p>
+<p>In this case, our <em>x</em> unit vector has picked out the first column, which constitutes the basis vector of the space when multiplying with column matrix vectors.</p>
+<p>[1] <a href="https://fgiesen.wordpress.com/2012/02/12/row-major-vs-column-major-row-vectors-vs-column-vectors/" class="uri">https://fgiesen.wordpress.com/2012/02/12/row-major-vs-column-major-row-vectors-vs-column-vectors/</a></p>
+<p>-- Andreas Fredriksson (Lead Engine Programmer)</p>
+</body>
+</html>

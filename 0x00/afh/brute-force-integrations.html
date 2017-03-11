@@ -1,0 +1,18 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>Lesson learned – <strong>Using brute force to solve integrations is my preferred approach.</strong></p>
+<p>Problem space for this month: Given a Gaussian function, come up with a way to find the ideal locations for N importance-sampled samples. Importance sampling is not the most common approach for approximating a Gaussian curve with discrete samples, at least not in real-time rendering. The usual approach is to have N evenly spaced samples, and for each one you compute a sample weight corresponding to the area under the Gaussian curve that’s “owned by” (i.e. closest to) that sample. Often we compute this just by evaluating the Gaussian at the evenly-spaced locations and multiplying the result by the distance between samples. This isn’t exactly the correct answer and tends to give a tiny bit too much weight to the outer samples, but it’s close enough not to usually matter for practical applications. The idea of importance sampling is to give each sample an equal weight, and adjust their spacing such that each one covers an equally-weighted section of the curve. So for a Gaussian curve that would mean closer-spacing near the center and sparser-spacing away from the center.</p>
+<p>So, how do we actually solve this? My process has been A) figure out the integral to find the area under a Gaussian curve, B) refine this to figure out the area under a discrete section of a Gaussian curve, C) give up being elegant and just write a program to iteratively refine the sample placements until they all have equal weight.</p>
+<p>And that led me to this realization – even if I spend many hours figuring out the solution of the integral, I’m not going to trust that I got it right. So the first thing I’m going to do is to write a brute force program that’s simple enough that I can have confidence that it’s correct, then I’m going to use this to check my answer. So for this issue of importance-sampling a Gaussian curve, my program evaluated the Gaussian curve at a million evenly spaced points along the curve. I used these tiny slices to find the (very close approximation of the) total area under the curve, and the total area that should be “owned” by each importance-sampled sample. From there it’s fairly straightforward to have the program find the ideal positions for each sample. So – why did I bother trying to figure it out analytically? Why not just jump ahead to the brute force answer that I can have confidence in? I’m not sure. I rather wish that’s what I’d done.</p>
+<p>-- Al Hastings (Chief Architect)</p>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <style>
+
+    tbody tr:nth-child(odd) {
+        background-color: #ccc;
+    }
+    table {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    tr td {
+        border-bottom:1pt solid black;
+        padding:6px;
+    }
+    </style>
+</head>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["AMSsymbols.js"] },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<h1 id="leastsquarescontinued">Least Squares (continued)</h1>
+
+<p>This is the second part of a two-part writeup about that venerable optimization technique, least squares. I sought mostly to cover stability issues and cover some common variants like Least Squares Polynomial generation and equality constrained Least Squares. I&#8217;d suggest reading through the included references for more detail, especially for the continuous least squares polynomial technique where a detailed derivation is kind of lengthy. Also presented is an alternative parameterization of ellipse solving using linear squares which I think is simpler than the parametric equation approach.</p>
+
+<p>I&#8217;d appreciate any corrections or other feedback.</p>

@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<h1 id="multi-input-multi-output-functions">Multi-Input Multi-Output Functions</h1>
+<p>Sometimes, we find ourselves in a situation where we have a function that needs to accept a number of inputs and produce a variable number of outputs per input. In the particular case where we have hundreds of inputs and a handful of outputs per input, a reliable approach likely to last a good while is to apply two complementary techniques: <strong>sort by type</strong> and <strong>linear processing</strong>.</p>
+<p>So, for some <code>MultiOp</code> function, we'll seperately allocate two regions of memory: one region for the outputs per input, and another for integers to count the outputs per input. We'll then process the outputs in a completely linear fashion with some help from the counters.</p>
+<p>Let's illustrate this concretely with some code:</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">Output*   outputs       = (Output*)  Allocate(max_outputs); <span class="co">// In most practical cases, max_outputs can be computed before processing begins</span>
+<span class="dt">uint32_t</span>* output_counts = (<span class="dt">uint32_t</span>*)Allocate(input_count);
+
+MultiOp(output_counts, outputs, inputs, input_count);
+
+<span class="co">// Future-self will thank you for this cursor</span>
+Output* output_cursor = outputs;
+
+<span class="co">// Iterate the headers, one per input</span>
+<span class="cf">for</span> (<span class="dt">uint32_t</span> icount = <span class="dv">0</span>; icount &lt; input_count; ++icount)
+{
+  <span class="co">// Process the outputs for this input</span>
+  <span class="dt">uint32_t</span> output_count = output_counts[icount];
+  <span class="cf">for</span> (<span class="dt">uint32_t</span> ioutput = <span class="dv">0</span>; ioutput &lt; output_count; ++ioutput)
+  {
+    <span class="co">// Do something (preferably awesome) with inputs[icount] and output_cursor[ioutput]</span>
+  }
+  
+  <span class="co">// Advance cursor</span>
+  output_cursor += output_count;
+}</code></pre></div>
+<p>This approach has a few nice properties:</p>
+<ol style="list-style-type: decimal">
+<li>Outputs are processed purely linearly and contiguously (i.e. constant stride), yielding optimal performance on that front</li>
+<li>Debugging most issues is relatively straightforward, especially compared to a &quot;packetized stream&quot; approach</li>
+<li>Can be expected to perform better than a callback-based approach</li>
+</ol>
+<ul>
+<li>With a C++11 lambda, this can depend on how/if a the lambda or static function gets inlined into the callsite</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Allocations required are temporary and their lifetime is clear</li>
+<li>Variations to address many circumstances (e.g. sparse output, where only a few inputs get <em>any</em> outputs) are relatively simple to make and remain performant</li>
+</ol>
+<p>It also has a few downsides:</p>
+<ol style="list-style-type: decimal">
+<li>For various reasons often outside of our control, the memory required for <code>outputs</code> can get large</li>
+<li>Related to the above, <code>max_outputs</code> can sometimes be well above what &quot;<code>typical_outputs</code>&quot; would be</li>
+<li>Memory overwrite bugs are still a pain to debug compared to some other approaches</li>
+<li>Some less-common circumstances (e.g. multiple heterogeneous output types) are less straightforward to accomodate</li>
+</ol>
+<p>In most cases, though, the downsides are well worth the upsides, especially compared to the live alternatives, and it's pretty easy to implement and get right to boot!</p>
+<p>-- Vitor Menezes (Associate Engine Programmer)</p>
+</body>
+</html>

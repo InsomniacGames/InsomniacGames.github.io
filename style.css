@@ -1,10 +1,11 @@
 body {
-  font-family: "Lucida Grande", sans-serif;
+  font-family: "Georgia", "Verdana", "Lucida Grande", sans-serif;
   margin: 20px auto;
   width: 95%;
   font-size: 70%;
   line-height: 1.4;
 }
+
 @media (min-width: 400px) {
   body { width: 90%; font-size: 75%; }
 }
@@ -22,4 +23,19 @@ body {
 }
 @media (min-width: 1450px) {
   body { width: 40%; font-size: 125%; }
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #ddd;
+}
+table {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+tr td {
+  border-bottom:1pt solid black;
+  padding:6px;
+}
+th {
+  padding:6px;
 }

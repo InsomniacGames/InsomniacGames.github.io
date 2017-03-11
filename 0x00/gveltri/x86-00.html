@@ -1,0 +1,23 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>The X86 processor has three modes - Real Mode, Protected Mode, and Long Mode. Real Mode operates in 16 bits and only has access to 1MB of memory. The processor boots up in this mode and it is up to the BIOS/OS to change the mode. Protected Mode operates in 32 bits and is backwards-compatible with Real Mode. Protected Mode also provides protected memory, which prevents programs from accessing each other's memory ranges. Long Mode operates in 64 bits and is backwards-compatible with Protected Mode.</p>
+<p>Backwards compatibility, on a register level, is achieved by sharing the register bits. For example, the AX register is a 16-bit register. The EAX is a 32-bit register that shares 16 bits with AX. Similarly, RAX is a 64-bit register that shares 32 bits with EAX.</p>
+<pre><code> |----------------------------------------------------------------|
+ |&lt;---------------------------- RAX -----------------------------&gt;|
+ |                                &lt;------------ EAX -------------&gt;|
+ |                                                &lt;----- AX -----&gt;|
+ |................................................................|
+ |----------------------------------------------------------------|</code></pre>
+<p>Note that there's also an AL and AH which represent the high and low bytes of the AX register.</p>
+<p>-- Giac Veltri (Senior Engine Programmer)</p>
+</body>
+</html>

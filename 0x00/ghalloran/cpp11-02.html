@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<h1 id="learning-c11-part-2">Learning C++11 (Part 2)</h1>
+<h2 id="range-based-for"><em>range-based for</em></h2>
+<p>This is C++11's answer to foreach which you see in a lot of scripting languages. Much like <em>auto</em>, it simplifies the sometimes verbose syntax of a standard for-loop. It's great when you just need the value of what you're iterating over.</p>
+<p>You can use <em>range-based for</em> on your collection classes if <em>begin()</em> and <em>end()</em> are implemented as well as plain C arrays. Let's look at some examples.</p>
+<p><strong>Old C++</strong></p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="cf">for</span> (<span class="bu">std::</span>vector&lt;<span class="dt">int</span>&gt;::const_iterator itr = v.cbegin(); itr != v.cend(); ++itr)
+  {
+    <span class="kw">auto</span> value = *itr;
+    printf(<span class="st">&quot;value: </span><span class="sc">%d\n</span><span class="st">&quot;</span>, value);
+  }
+
+  <span class="cf">for</span> (<span class="dt">int</span> i = <span class="dv">0</span>; i &lt; v.size(); ++i)
+  {
+    <span class="dt">int</span> value = v[i];
+    printf(<span class="st">&quot;value: </span><span class="sc">%d\n</span><span class="st">&quot;</span>, value);
+  }</code></pre></div>
+<p><strong>C++11</strong></p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="cf">for</span> (<span class="kw">auto</span> value: v)
+  {
+    printf(<span class="st">&quot;value: </span><span class="sc">%d\n</span><span class="st">&quot;</span>, value);
+  }</code></pre></div>
+<p>Simple example of iterating over a container and printing the results. Two different ways of doing it the old way, but both can be simplified the same way in C++11. The code is greatly simplified to only what we care about (the value) and nothing else.</p>
+<p><strong>Old C++</strong></p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="cf">for</span> (<span class="bu">std::</span>vector&lt;<span class="dt">int</span>&gt;::iterator itr = v.begin(); itr != v.end(); ++itr)
+  {
+    *itr *= <span class="dv">2</span>;
+  }</code></pre></div>
+<p><strong>C++11</strong></p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="cf">for</span> (<span class="kw">auto</span>&amp; value: v)
+  {
+    value *= <span class="dv">2</span>;
+  }</code></pre></div>
+<p>This time we want to modify each entry in the container. Note in this example we need to use a reference in the <em>range-based for</em>.</p>
+<h3 id="when-to-use-value-vs.-reference">When to use value vs. reference</h3>
+<p>Here are some general rules on when to use value or reference. * When you want to change the value, use a reference (<em>auto&amp;</em>) * When the value would incur a copying penalty, use a const reference (<em>const auto&amp;</em>) * Otherwise, simply use by value (<em>auto</em>)</p>
+<h3 id="theres-something-missing">There's something missing</h3>
+<p>Remember the first example where we used the index to get the value out of the vector? When you use <em>range-based for</em> you lose that index or iterator if you need it for something else.</p>
+<p>-- Garner Halloran (Engine Programmer)</p>
+</body>
+</html>

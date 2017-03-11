@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<h1 id="floating-point">Floating Point</h1>
+<p>The IEEE 754 floating-point standard defines a single-precision (32-bit) number as being represented by:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Sign</th>
+<th align="left">Exponent</th>
+<th align="left">Mantissa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1 bit</td>
+<td align="left">8 bits</td>
+<td align="left">23 bits</td>
+</tr>
+</tbody>
+</table>
+<p>To convert a number to this format, it is put into normalized binary scientific notation. Normalized means that there is a one in the first position:</p>
+<p>(+/-)1.Mantissa x 2<sup>e</sup></p>
+<p>In the standard, e has a bias of 127, so you calculate the actual exponent to be the value of these 8 bits minus 127. At first blush, the range of the exponent would appear to be:</p>
+<p>[0 - 127, 255 - 127] = [-127, 128]</p>
+<p>But hold that thought.</p>
+<p>Because the format stipulates that there is a one in the first position, there is no need to store it in the representation. The one is a <em>hidden bit</em> that is assumed to be there. But this means you wouldn't be able to represent zero, at least not without some more explanation. So, there are some special case values reserved in the format, giving two representations for zero, two for infinity, and few flavors of <em>Not a Number</em>:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Sign</th>
+<th align="center">Exponent</th>
+<th align="center">Mantissa</th>
+<th align="center">=</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center">00000000</td>
+<td align="center">00000000000000000000000</td>
+<td align="center">+0</td>
+</tr>
+<tr class="even">
+<td align="center">1</td>
+<td align="center">00000000</td>
+<td align="center">00000000000000000000000</td>
+<td align="center">-0</td>
+</tr>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center">11111111</td>
+<td align="center">00000000000000000000000</td>
+<td align="center">Inf</td>
+</tr>
+<tr class="even">
+<td align="center">1</td>
+<td align="center">11111111</td>
+<td align="center">00000000000000000000000</td>
+<td align="center">-Inf</td>
+</tr>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center">11111111</td>
+<td align="center">(not all zero)</td>
+<td align="center">NaN</td>
+</tr>
+</tbody>
+</table>
+<p>These reserved values use up an entry at either end of the exponent range, so the range is actually [-126, 127].</p>
+<h2 id="hole-at-zero">Hole at Zero</h2>
+<p>Examine the smallest possible value after zero and the next smallest value using what has been described so far:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Sign</th>
+<th align="center">Exponent</th>
+<th align="center">Mantissa</th>
+<th align="center">Scientific</th>
+<th align="center">=</th>
+<th align="center">Distance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center">00000000</td>
+<td align="center">00000000000000000000000</td>
+<td align="center">-</td>
+<td align="center">+0</td>
+<td align="center">-</td>
+</tr>
+<tr class="even">
+<td align="center">0</td>
+<td align="center">00000001</td>
+<td align="center">00000000000000000000000</td>
+<td align="center">2<sup>0</sup> x 2<sup>-126</sup></td>
+<td align="center">2<sup>-126</sup></td>
+<td align="center">2<sup>-126</sup></td>
+</tr>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center">00000001</td>
+<td align="center">00000000000000000000001</td>
+<td align="center">(2<sup>0</sup>+2<sup>23</sup>) x 2<sup>-126</sup></td>
+<td align="center">2<sup>-126</sup>+2<sup>-149</sup></td>
+<td align="center">2<sup>-149</sup></td>
+</tr>
+<tr class="even">
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<p>Because of the <em>hidden bit</em> (2<sup>0</sup> = 1), we have lost precision between zero and the next smallest representable number. You can see this by looking at the distance between each of the numbers in the sequence. As shown above, the distance between zero and the next smallest number is larger than the distance between the smallest non-zero number and the next one. This gap is called the <em>hole at zero</em>. It means that there is less accuracy in the numeric representations near zero.</p>
+<h2 id="denormals">Denormals</h2>
+<p>The IEEE standard fills in the <em>hole at zero</em> by reserving another special case. It allows for storing some values that are not normalized. These are called <em>denormals</em>. Since these numbers are not normalized, the <em>hidden bit</em> is assumed to be zero for these numbers instead of one.</p>
+<p><em>Denormals</em> are indicated by values would appear to have an exponent of 127, but they now have a special meaning. Normally, an exponent of all zero bits would be caluclated as:</p>
+<p>e = 0 - 127 = -127.</p>
+<p>But the special meaning in the standard stipulates that the exponent is actually assigned to -126.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Sign</th>
+<th align="center">Exponent</th>
+<th align="center">Mantissa</th>
+<th align="center">=</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center">00000000</td>
+<td align="center">(not all zero)</td>
+<td align="center">+ denormal</td>
+</tr>
+<tr class="even">
+<td align="center">1</td>
+<td align="center">00000000</td>
+<td align="center">(not all zero)</td>
+<td align="center">- denormal</td>
+</tr>
+</tbody>
+</table>
+<p>By forcing the exponent to be calculated as -126 and the <em>hidden bit</em> to be zero, this allows the standard to represent values near zero with increased accuracy.</p>
+<h2 id="further-reading">Further Reading</h2>
+<p>Goldberg, David. &quot;What Every Computer Scientist Should Know About Floating-Point Arithmetic.&quot; <em>Computing Surveys</em> March 1991: 171-264. validlab.com/goldberg/paper.ps. Web. 23 Jan. 2017.</p>
+<p>Van Verth, James M., Lars M. Bishop. &quot;Representing Real Numbers.&quot; <em>Essential Mathematics for Games and Interactive Applications.</em> 3rd ed. Boca Raton: CRC, 2016. Web. ISBN 978-1482250923.</p>
+<p>-- Chris Edwards (Senior Engine Programmer)</p>
+</body>
+</html>

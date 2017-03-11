@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>To help myself explore the x64 PE (Portable Executable) file format for Windows, I created a series of step-by-step exercises for myself:</p>
+<ol style="list-style-type: decimal">
+<li>Start with an idiomatic example. What's the regular way of doing this?</li>
+<li>Bindump that executable, create an assembly file that is just the binary, and assemble that to make sure I get the same result.</li>
+<li>Marking up the asm data with locations, pointers and other information to validate I know how it's put together. Continuing to build the same exe.</li>
+<li>Once I'm comfortable with my understanding of the initial example, then I can start to add things and experiment.</li>
+</ol>
+<p>The files are all written in <a href="https://flatassembler.net/">fasm</a>. Except in a couple places where noted in the source file, each builds on the last on you can examine the change by diffing the two files.</p>
+<table>
+<colgroup>
+<col width="32%" />
+<col width="67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/00_pe_return_00.asm">00_pe_return_00.asm</a></td>
+<td>Simple idiomatic fasm example. Returns 42.</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/00_pe_return_01.asm">00_pe_return_01.asm</a></td>
+<td>Assembled bindump of 00_pe_return_00.exe</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/00_pe_return_02.asm">00_pe_return_02.asm</a></td>
+<td>Label important PE locations; print to verify</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/00_pe_return_03.asm">00_pe_return_03.asm</a></td>
+<td>Calculate padding; Name values; Replace addresses with labels.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/00_pe_return_04.asm">00_pe_return_04.asm</a></td>
+<td>Dissassemble code at 'start' label.</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/00_pe_return_05.asm">00_pe_return_05.asm</a></td>
+<td>Calculate rip-relative addresses replacing hard-coded value.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/00_pe_return_06.asm">00_pe_return_06.asm</a></td>
+<td>Alternative: Replace pointers with absolute addresses.</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/01_pe_printf_00.asm">01_pe_printf_00.asm</a></td>
+<td>Add msvcrt.dll and call printf to 00_pe_return_05.asm</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/01_pe_printf_01.asm">01_pe_printf_01.asm</a></td>
+<td>Add BSS section.</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/01_pe_printf_02.asm">01_pe_printf_02.asm</a></td>
+<td>Print call return address from stack. (Demo stack offset.)</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/02_pe_messagebox_00.asm">02_pe_messagebox_00.asm</a></td>
+<td>Add GUI Subsystem, call GetModuleNameA and MessageBoxA</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/02_pe_messagebox_01.asm">02_pe_messagebox_01.asm</a></td>
+<td>Put IDATA into CODE section; Remove padding; Remove DOS program</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/02_pe_messagebox_02.asm">02_pe_messagebox_02.asm</a></td>
+<td>Let assembler calculate rip-relative addresses inside section.</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Windows/00_BasicOS/02_pe_messagebox_03.asm">02_pe_messagebox_03.asm</a></td>
+<td>Embed BSS inside CODE section.</td>
+</tr>
+</tbody>
+</table>
+<p>-- Mike Acton (Engine Director)</p>
+</body>
+</html>

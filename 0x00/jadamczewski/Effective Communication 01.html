@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<h2 id="effective-communication-code-review">Effective Communication: Code Review</h2>
+<p>Key ideas:</p>
+<ol style="list-style-type: decimal">
+<li>Communication isn't just about delivering information; at its best, communication is a two-way process.</li>
+<li>Respect is an important part of communication. If the person you're communicating with feels that you value their time, they are more likely to give your their attention.</li>
+</ol>
+<p>Concretely, these ideas can be seen in action in a team that does code reviews: there is a request for review, some description of the change, and some back and forth discussion about the purpose, details, and merit of that change.</p>
+<h3 id="seeking-review">Seeking review</h3>
+<p>When seeking code review, value the time of the reviewer - good code review requires a lot of attention and consideration, so anything that distracts the reviewer from the review will subtract from what they have to put into the review.</p>
+<p>The most important principle I have when seeking code review is this: <em>Make your change as easy as possible to review.</em></p>
+<p>I say this because I know what gets in the way of me reviewing others' code. Do I have to do more than click a single link in an email? Can I just walk to someone else's desk where the change is already on the screen? Great! If there's more than that - if I have to dig the change out of the perforce depot, or copy and paste from an email (or review code sent in an email - ugh!), or I have to hunt someone down to review their code, I'm going to be more reluctant to do the work, and less inclined to give it my full attention.</p>
+<h3 id="target-your-request">Target your request</h3>
+<p>Depending on the team, it may not always be clear who is the best person to review the change. If that is the case, it is better to not broadcast the request to every programmer in the company.</p>
+<p>Ideally, ask specific people who have ownership or familiarity with the code to review your changes. If you don’t know who those people might be, ask someone else who might know. It shouldn't take too long to identify suitable reviewers.</p>
+<h3 id="be-a-reviewer">Be a reviewer</h3>
+<p>The other side of showing respect to for others time is to resond when they seek help. Take the time to review other people’s changes. It is frustrating to seek review and hear crickets. If you are not comfortable with being the [only] reviewer of a change, say so <em>and suggest someone else who should review the change</em>.</p>
+<h3 id="documentation-is-communication">Documentation is communication</h3>
+<p>Documentation is an important part of the review process. Documentation of the change, the purpose of the change, and the effect of the change make it easier to review, and easier to maintain.</p>
+<p>Before asking for review, add comments (in the code and/or the review system) to make it easy for a prospective reviewer to understand why the solution is implemented the way that it is, the intended behavior. Writing tests can also help communicate what you are expecting of the code, and demonstrate that the code works for at least those tests.</p>
+<p>-- Jonathan Adamczewski (Senior Engine Programmer)</p>
+</body>
+</html>

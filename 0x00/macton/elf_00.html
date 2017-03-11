@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>Following up my look into the <a href="pe_00.html">x64 PE file format on Windows</a>, I also wanted to have a deeper look at building an ELF formated executable on Linux. Turns out that's pretty straightforward.</p>
+<p>As before, the files are all written in <a href="https://flatassembler.net/">fasm</a>.</p>
+<table>
+<colgroup>
+<col width="32%" />
+<col width="67%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Linux/00_BasicOS/01_elf_return.asm">01_elf_return.asm</a></td>
+<td>Simple example assembling ELF executable, return 42.</td>
+</tr>
+<tr class="even">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Linux/00_BasicOS/02_elf_bss.asm">02_elf_bss.asm</a></td>
+<td>Add &quot;.bss&quot; section by increasing in-memory size of the section.</td>
+</tr>
+<tr class="odd">
+<td><a href="https://github.com/macton/x64-fasm-examples/blob/master/Linux/00_BasicOS/03_elf_libc.asm">03_elf_libc.asm</a></td>
+<td>Dynamically link libc.so.6, call printf as example.</td>
+</tr>
+</tbody>
+</table>
+<p>-- Mike Acton (Engine Director)</p>
+</body>
+</html>

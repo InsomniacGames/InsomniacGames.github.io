@@ -1,0 +1,208 @@
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <style>
+
+    tbody tr:nth-child(odd) {
+        background-color: #ccc;
+    }
+    table {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    tr td {
+        border-bottom:1pt solid black;
+        padding:6px;
+    }
+    </style>
+</head>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["AMSsymbols.js"] },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<h1 id="leastsquares">Least Squares</h1>
+
+<p>My first topic is Least Squares. I went a little long so it&#8217;s split into two parts. This, the first one, attempts to answer &#8220;What is least squares and how does it work?&#8221; This is well trod ground so I wouldn&#8217;t expect even an advanced beginner to see anything <em>completely</em> new. For me the value was taking an idea from my &#8220;peripherally aware&#8221; set to my &#8220;can explain it to someone else&#8221; set. I encourage anyone interested to check out the links/books referenced for a comprehensive treatment.</p>
+
+<h2 id="whatisit">What is it?</h2>
+
+<p>One of the most effective tools in the optimization toolbox is also one of the simplest to use. <a href="https://en.wikipedia.org/wiki/Least_squares">Least Squares Approximation</a> is a robust method that allows us to model systems using imperfect data and also generate approximating functions. Its applications are usually simple to spot, and the technique itself is easily coded.</p>
+
+<p>The invention of least squares is generally credited to <a href="http://projecteuclid.org/euclid.aos/1176345451">Gauss</a>, who famously used the method to determine the orbit of Ceres based on 40 days worth of historical data. Although Gauss gets the credit, the technique was known to his contemporaries and was in fact first published by Legendre.</p>
+
+<p>Least squares is used to fit a model function to a data set, particularly when the data contains systematic errors which preclude a perfect fit. It is used in statistics to determine how closely a function corresponds to a line. There are variants to deal with varying reliabiliy of measurements, equality constraints, and minimizing the magnitude of the solution vector.</p>
+
+<h2 id="theproblem">The Problem</h2>
+
+<p><img align="left" src="random_points.png"></p>
+
+<p>In statistics and function approximation, we often want to find a function (or group of functions) that models a system and matches a set of sampled data. Another goal may be to substitute a simpler function (typically a low order polynomial) for a complicated function (matching, if not everywhere, than hopefully at a set of particular data points).</p>
+
+<p>The data, though, is usually a problem. Even when just trying to fit a simple line to a set of data points that should be linear, normal errors in measurement means there&#8217;s usually <em>no</em> line that exactly fits the points.</p>
+
+<p>Consider a set of data points, <span class="math">\(\textbf{b}=\begin{pmatrix} b_1, ..., b_n \end{pmatrix}^T\)</span>, associated with an independent variable <span class="math">\(\textbf{x}=\begin{pmatrix} x_1, ..., x_n \end{pmatrix}^T\)</span>. Inspection of the data suggests that it was generated using a linear function of the form <span class="math">\(b = mx + c\)</span>. The linear function has two unknowns: <span class="math">\(m\)</span> and <span class="math">\(c\)</span>.</p>
+
+<p>Consider <span class="math">\(n=2\)</span>, the case with two data points. With two samples and two unknowns, we&#8217;re presented with a familiar system of equations:</p>
+
+<p><span class="math">\[m x_1 + c = b_1\]</span></p>
+
+<p><span class="math">\[m x_2 + c = b_2\]</span></p>
+
+<p>or, in matrix form,</p>
+
+<p><span class="math">\[\begin{pmatrix} x_1 & 1 \\ x_2 & 1 \\ \end{pmatrix} \begin{pmatrix} m \\ c \end{pmatrix} = \begin{pmatrix} b_1 \\ b_2 \end{pmatrix}\]</span></p>
+
+<p>For convenience we&#8217;ll label our matrix with <span class="math">\(A\)</span>. Solving for <span class="math">\(\textbf{x}\)</span> is a equivalent to computing <span class="math">\(A^{-1}\textbf{b}\)</span>. Assuming <span class="math">\(A\)</span> is invertible - equivalently, the matrix is full row rank and the rows are independent - this is possible.</p>
+
+<p>Let&#8217;s say <span class="math">\(A\)</span> is a <span class="math">\(n{\times}2\)</span>, with <span class="math">\(n<2\)</span>. The number of rows is greater than the number of columns, and <span class="math">\(A\)</span> cannot be full row rank - every row cannot be independent. Said another way, given that two points define a line, a third point added will either not be on that line, thus leading to an inconsistent system, or it will be on the line, in which case it&#8217;s extraneous.</p>
+
+<p>Thus if our measurements were perfectly accurate (and our function really is linear) then we can pick any two independent rows of <span class="math">\(A\)</span> and <span class="math">\(\textbf{b}\)</span> and recover <span class="math">\(m\)</span> and <span class="math">\(c\)</span>. More likely, our values in <span class="math">\(\textbf{b}\)</span> are not perfect, in which case different rows will solve for different results. There is probably no <span class="math">\(m\)</span> and <span class="math">\(c\)</span> which will fit every sample point.</p>
+
+<p>If we can&#8217;t find an exact value for <span class="math">\(\begin{pmatrix} m \\ c \end{pmatrix}\)</span>, we can at least pick values for <span class="math">\(m\)</span> and <span class="math">\(c\)</span> that bring that line closest to the data points. To do that we&#8217;ll need a way of determining how close our current values are. Let <span class="math">\(\textbf{x} = \begin{pmatrix} m \\ c \end{pmatrix}\)</span>. Given a current estimate of <span class="math">\(x^*\)</span> for <span class="math">\(x\)</span>, how good an estimate is it?</p>
+
+<p><span class="math">\[A\textbf{x}^* \approx \textbf{b}\]</span></p>
+
+<p>To answer that question we need to be able to define and measure the error. Let <span class="math">\(\textbf{e}\)</span> be the error vector associated with each variable (technically, the residual, since we&#8217;re measuring error in the ordinate not the abscissa). We can define the difference between our generated value and the expected value in terms of <span class="math">\(\textbf{e}\)</span>:</p>
+
+<p><span class="math">\[A\textbf{x}^* + \textbf{e} = \textbf{b} \implies \textbf{e} = \textbf{b} - A\textbf{x}^*\]</span></p>
+
+<p>We can now use our definition for <span class="math">\(\textbf{e}\)</span> to help find <span class="math">\(\textbf{x}^*\)</span>. But before doing that, what does it actually mean?</p>
+
+<h2 id="orthogonalcomponenttoprojectiononcolumnspaceofa">Orthogonal component to projection on column space of A</h2>
+
+<p><img align="left" src="projection4.png"></p>
+
+<p><span class="math">\(A\textbf{x}^{\star}\)</span>, necessarily, is a vector in the column space of <span class="math">\(A\)</span>. If <span class="math">\(\textbf{b}\)</span> is in the column space of <span class="math">\(A\)</span>, then <span class="math">\(A\textbf{x}^{\star}=b\)</span> and the problem is solved. Given <span class="math">\(\textbf{b}\)</span> not in the column space, though we have <span class="math">\(\textbf{e} \ne 0\)</span>. Indeed, our definition of <span class="math">\(\textbf{e}\)</span> suggets a method for its calculation: we factor <span class="math">\(\textbf{b}\)</span> into the portion in the column space of <span class="math">\(A\)</span> (<span class="math">\(A\textbf{x}^{\star}\)</span>), and the orthogonal component which connects <span class="math">\(A\textbf{x}^{\star}\)</span> to <span class="math">\(\textbf{b}\)</span>. That&#8217;s exactly what <span class="math">\(\textbf{e}\)</span> does.</p>
+
+<p>Geometrically, then, connecting <span class="math">\(A\textbf{x}^{\star}\)</span> to <span class="math">\(\textbf{b}\)</span> requires a vector orthogonal to column space of <span class="math">\(A\)</span> - our <span class="math">\(\textbf{e}\)</span>. This geometry gives us the information we need to find a value for <span class="math">\(\textbf{e}\)</span>.</p>
+
+<p>According to the <a href="http://mathworld.wolfram.com/FundamentalTheoremofLinearAlgebra.html">Fundamental Theorem of Linear Algebra</a>, the column space and left nullspace of a matrix are orthogonal. Therefore we know our <span class="math">\(\textbf{e}\)</span> to be in the left nullspace of <span class="math">\(A\)</span>, that is, <span class="math">\(A^T \textbf{e} = 0\)</span>.</p>
+
+<p>So <span class="math">\(A^T\textbf{e} = 0 \implies A^T (\textbf{b} - A\textbf{x}^*) = 0\)</span>, or</p>
+
+<p><span class="math">\[A^T\textbf{b} = A^T A\textbf{x}^*\]</span></p>
+
+<p>This is the matrix form of the <em>normal equations</em>, which when solved give the least squares approximation. <span class="math">\(\textbf{x}^*\)</span> can be computed directly by first calculating <span class="math">\((A^T A)^{-1}\)</span> and then multiplying <span class="math">\(A^T\textbf{b}\)</span>. Provided the columns of <span class="math">\(A\)</span> are independent the inverse is guaranteed to exist. Although of course it&#8217;s possible and preferable to solve without calculating the inverse (as John D. Cook says, <a href="https://www.johndcook.com/blog/2010/01/19/dont-invert-that-matrix/">don&#8217;t invert that matrix</a>);</p>
+
+<p>This doesn&#8217;t explain the name &#8220;Least Squares&#8221; though. Where does that come from?</p>
+
+<p>The optimal solution <span class="math">\(x^*\)</span> minimizes the magnitude of <span class="math">\(\textbf{e}\)</span>, that is, <span class="math">\(|A\textbf{x}^* - \textbf{b}|\)</span>. Equivalently we can solve the square, which is simpler, <span class="math">\(|A\textbf{x}^* - \textbf{b}|^2\)</span>. Separating by terms leaves us minimizing <span class="math">\(\sum_{i=1}^{n} (a_i^T x_i - b_i)^2\)</span> where <span class="math">\(a_i^T\)</span> is the <span class="math">\(i^{th}\)</span> row vector in <span class="math">\(A\)</span>. It&#8217;s from this formulation - finding the least sum of the squares of the error - that the method gets its name.</p>
+
+<p>If you&#8217;re familiar with matrix calculus you can take the partial derivative of <span class="math">\(|A\textbf{x} - \textbf{b}|^2\)</span>, or equivalently <span class="math">\((A\textbf{x} - \textbf{b})^T(A\textbf{x} - \textbf{b})\)</span>, to derive the Normal Equations.</p>
+
+<h2 id="examples">Examples</h2>
+
+<h3 id="fittingdata">Fitting data</h3>
+
+<p><img align="right" src="3_Table1Points.png"></p>
+
+<table style="float:left;margin-right:50px;"><thead><tr><th>models</th><th>actors</th><th>ms</th></tr></thead>
+<tbody>
+<tr><td>5</td><td>8</td><td>28.085</td>
+<tr><td>10</td><td>15</td><td>53.399</td>
+<tr><td>15</td><td>23</td><td>81.681</td>
+<tr><td>20</td><td>30</td><td>106.946</td>
+<tr><td>25</td><td>38</td><td>135.185</td>
+<tr><td>30</td><td>45</td><td>160.435</td>
+<tr><td>35</td><td>53</td><td>188.703</td>
+</tbody></table>
+
+<p>Say we are given the following framerate data. We&#8217;re looking to relate the number of actors and models in a particular setup with the resulting framerate. Our intuition tells us that the millisecond cost will be proportional to the number of actors and models we have. A quick inspection of these points plotted suggest that they appear to lie in a line.</p>
+
+<p>Given that observation, we&#8217;re looking for an equation of the form <span class="math">\(b = s x_0 + t x_1\)</span>, where <span class="math">\(x_0\)</span> is the number of models and <span class="math">\(x_1\)</span> the number of actors. To find the coefficients <span class="math">\(s\)</span> and <span class="math">\(t\)</span> using the normal equations, first we&#8217;ll need to form our system of equations in matrix form.</p>
+
+<p>We&#8217;ve augmented our <span class="math">\(A\)</span> here with a column of ones, turning our modeling function into <span class="math">\(b = s x_0 + t x_1 + u\)</span>. This may not be necessary - it amounts to adding a y-intercept to our equation. If the y-intercept is 0 - if 0 actors and 0 models means a frame takes 0 ms to render - then <span class="math">\(u\)</span> will be 0 and we haven&#8217;t hurt anything. If there is some sort of fixed cost though, <span class="math">\(u\)</span> will capture it. It&#8217;s mostly harmless.</p>
+
+<p>We express our equations in matrix form:</p>
+
+<p><span class="math">\(\begin{pmatrix} 5&8&1\\10&15&1\\15&23&1\\20&30&1\\25&38&1\\30&45&1\\35&53&1\\\end{pmatrix} \textbf{x} = \begin{pmatrix}28.085\\53.399\\81.681\\106.946\\135.185\\160.435\\188.703\\\end{pmatrix}\)</span>
+<span class="math">\(\implies A\textbf{x} = \textbf{b}\)</span></p>
+
+<p>Armed with A, we rearrange terms in the normal equations to give us <span class="math">\((A^TA)^{-1}A^T\)</span>:</p>
+
+<p><span class="math">\(\begin{pmatrix}
+-0.7714285714280663 & 0.9857142857136317 & -0.7571428571423645 & 0.9999999999993371 & -0.7428571428566592 & 1.0142857142850423 & -0.7285714285709538\\\
+0.4999999999996636 & -0.6666666666662298 & 0.49999999999966716 & -0.6666666666662227 & 0.49999999999968137 & -0.6666666666662227 & 0.49999999999968137\\\
+0.42857142857152286 & 0.6190476190474968 & 0.1428571428572355 & 0.3333333333332086 & -0.1428571428570492 & 0.04761904761892388 & -0.42857142857133745\\\
+\end{pmatrix}\)</span></p>
+
+<p>Multiplying through to <span class="math">\(\textbf{b}\)</span> and taking three digits of precision we get <span class="math">\(\textbf{x}=\begin{pmatrix}0.89 \\ 2.97 \\ -0.13\end{pmatrix}\)</span>. So actors are twice as expensive as models according to our data.</p>
+
+<h3 id="fittingcurves">Fitting curves</h3>
+
+<p><img align="left" src="3_Table2aPoints.png"></p>
+
+<p>Sometimes the best model for a set of data isn&#8217;t a linear function but a polynomial of higher order. Function approximation is a deep topic replete with interesting details but for the moment let&#8217;s see how well we can do with our humble least squares.</p>
+
+<p>To the left is a set of data points that is definitely not linear. The general shape of the data is (half) parabolic, so we&#8217;re probably looking for a quadratic eqution as our model.</p>
+
+<p>We construct <span class="math">\(A\)</span> a bit differently in this case. We&#8217;re looking for a set of coefficients <span class="math">\(a\)</span>, <span class="math">\(b\)</span>, <span class="math">\(c\)</span> to minimize the residual in <span class="math">\(s x^2 + t x + u = b\)</span>. So our system of equations in this case looks like:</p>
+
+<p><span class="math">\[s x_1^2 + t x_1 + u = b_1\]</span></p>
+
+<p><span class="math">\[\cdots\]</span></p>
+
+<p><span class="math">\[s x_n^2 + t x_n + u = b_2\]</span></p>
+
+<p>Although these are quadratic equations, they are linear in the coefficients - because we&#8217;re actually looking for <span class="math">\(s\)</span>, <span class="math">\(t\)</span>, and <span class="math">\(u\)</span>, and that&#8217;s sufficient. Thus our matrix setup looks like</p>
+
+<p><span class="math">\[\begin{pmatrix} x_0^2 & x_0 & 1 \\ x_1^2 & x_1 & 1 \\ & \cdots & \\ x_n^2 & x_n & 1 \end{pmatrix} \begin{pmatrix} s  \\ t \\ u \end{pmatrix} = \begin{pmatrix} b_1 \\ b_2 \\ \cdots \\ b_n \end{pmatrix}\]</span></p>
+
+<p>We&#8217;re given the <span class="math">\(\textbf{x}\)</span> values so <span class="math">\(A\)</span> is trivial to construct.</p>
+
+<p>Working through this example gives values of approximately <span class="math">\(s = 1.01\)</span>, <span class="math">\(t = 3.004\)</span>, <span class="math">\(u = -2.116\)</span>. This is relatively high error but given the noisiness of the data a reasonable fit.</p>
+
+<h3 id="changeofvariables">Change of variables</h3>
+
+<table style="float:left;margin-right:50px;"><thead><tr><th>x</th><th>y</th></tr></thead>
+<tbody>
+<tr><td>0.5</td><td>5.049256664530498</td>
+<tr><td>1</td><td>8.182255633188568</td>
+<tr><td>1.5</td><td>13.563177467810174</td>
+<tr><td>2</td><td>22.14093239888445</td>
+<tr><td>2.5</td><td>36.64461491006822</td>
+<tr><td>3</td><td>60.24551100013749</td>
+<tr><td>3.5</td><td>99.49271499668747</td>
+</tbody></table>
+
+<p><img align="right" src="3_Table3Points.png"></p>
+
+<p>As demonstrated in the last example, part of the unreasonable effectiveness of least squares is its applications to problems that are only linear in the coefficients, but not linear in the independent variables. We can often accomplish this with a change in variables.</p>
+
+<p>Consider <span class="math">\(b = k e^x\)</span>. Before we try least squares approximation, we first have to transform it into a linear function. Taking the log of both sides:</p>
+
+<p><span class="math" style="margin-left:50px"><span class="math">\(\log b = \log (k e^x)\)</span></span></p>
+
+<p><span class="math" style="margin-left:50px"><span class="math">\(\log b = \log k + \log e^x\)</span></span></p>
+
+<p><span class="math" style="margin-left:50px"><span class="math">\(\log b = \log k + x\)</span></span></p>
+
+<p><span class="math" style="margin-left:50px"><span class="math">\(\log b = c + x\)</span></span></p>
+
+<p>With <span class="math">\(c = \log k\)</span>, <span class="math">\(z = \log b\)</span>, our matrix thus stands:</p>
+
+<p><span class="math">\(\begin{pmatrix} x_0 & 1 \\ x_1 & 1 \\ & \cdots & \\ x_n & 1 \end{pmatrix} \begin{pmatrix} x \\ c  \end{pmatrix} = \begin{pmatrix} z_1 \\ z_2 \\ \cdots \\ z_n \end{pmatrix}\)</span></p>
+
+<p>Solving this system gives us <span class="math">\(c\)</span> which we can exponentiate for our sought constant <span class="math">\(k\)</span>. Keep in mind though that we&#8217;re minimizing the linear error, not the error in the original problem. The fit will not be equally good over the domain. There are more sophisticated (that is, complicated) techniques for non-linear function approximation.</p>
+
+<h1 id="nextup">Next up</h1>
+
+<p>Next up I&#8217;ll be writing some more about least squares, in particular variants like weighted least squares and equality constrained least squares. I&#8217;ll touch on the correlation coefficient but otherwise there won&#8217;t be anything statistical.</p>
+
+<p>Speaking of statistics, although I&#8217;m hardly an expert, most texts which introduce least squares (or linear regression) offer derivations and formulas that aren&#8217;t so matrix oriented. If you see least squares in the wild, that&#8217;s probably the form you&#8217;ll see it in.</p>
+
+<p>Please let me know if you have any corrections or comments. If possible I&#8217;ll fix any errors or ambiguity.</p>
+
+<h2 id="furtherreading">Further reading</h2>
+
+<p>I relied mostly on Linear Algebra and Its Applications (Gilbert Strang, 3rd Edition, Brooks/Cole (1988)), especially for the derivation of the normal equations.</p>
+
+<p><a href="http://blog.demofox.org/2016/12/22/incremental-least-squares-curve-fitting/">This article</a> by &#8220;Demofox&#8221; has a nice breakdown of what <span class="math">\(A^{T}A\)</span> actually looks like and offers an incremental method of building it (at least, under some circumstances).</p>

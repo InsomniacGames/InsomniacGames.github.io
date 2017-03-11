@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>Unlike other simple arithmetic instructions, the unsigned MUL and DIV instructions have implicit destination registers. Furthermore, the bit-width of the destination depends on, and is different from, the source register. For the MUL operation:</p>
+<pre><code>  MUL (8-bit register):  Source AL (8 bits)   -&gt; Destination AX (16 bits)
+  MUL (16-bit register): Source AX (16 bits)  -&gt; Destination DX:AX (16-bit DX, 16-bits AX)
+  MUL (32-bit register): Source EAX (32 bits) -&gt; Destination EDX:EAX (32-bit EDX, 32-bit EAX)</code></pre>
+<p>So, for 8-bit multiplies, the source is AL (8 bits) and the output is AX (16 bits). The &quot;:&quot; notation means that the bits are concatenated. Note that DX and EDX is not the same physical register as AX and EAX, so the result can span registers.</p>
+<p>In addition to having an implicit destination, the DIV instruction has two outputs - a quotient and a remainder.</p>
+<pre><code>  DIV (8-bit register):  Source AX (16 bits)      -&gt; Destination Quotient AL (8 bits), Remainder AH (8 bits)
+  DIV (16-bit register): Source DX:AX (32 bits)   -&gt; Destination Quotient AX (16 bits), Remainder DX (16 bits)
+  DIV (32-bit register): Source EDX:EAX (64 bits) -&gt; Destination Quotient EAX (32 bits), Remainder EDX (32 bits)</code></pre>
+<p>For reference, here's the layouts for the registers referenced above:</p>
+<pre><code> |----------------------------------------------------------------|
+ |                                &lt;------------ EAX -------------&gt;|
+ |                                                &lt;----- AX -----&gt;|
+ |                                                &lt;- AH -&gt;&lt;- AL -&gt;|
+ |................................................................|
+ |----------------------------------------------------------------|
+
+ |----------------------------------------------------------------|
+ |                                &lt;------------ EDX -------------&gt;|
+ |                                                &lt;----- DX -----&gt;|
+ |................................................................|
+ |----------------------------------------------------------------|</code></pre>
+<p>-- Giac Veltri (Senior Engine Programmer)</p>
+</body>
+</html>

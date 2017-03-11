@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>When you're isolating bit fields and need both the &quot;before and after&quot;, that is, both the isolated bits and the remaining data with a hole full of zeroes where the bits were, a common approach is this:</p>
+<pre><code>uint32_t value = ...;
+uint32_t a = value &amp; kFieldMask;     // Isolate &#39;A&#39; bits
+uint32_t b = value &amp; ~kFieldMask;    // Isolate the other bits</code></pre>
+<p>There is an alternate way to express the same thing that can sometimes come in handy:</p>
+<pre><code>uint32_t value = ...;
+uint32_t a = value &amp; kFieldMask;     // Isolate &#39;A&#39; bits
+uint32_t b = value ^ a;              // Isolate the other bits</code></pre>
+<p>This exploits the fact that the xor of <code>value</code> with <code>a</code> will just flip any 1-bits we already isolated in the first logical and.</p>
+<p>Mostly this is useful as an optimization for code size, because you avoid storing both <code>kFieldMask</code> and <code>~kFieldMask</code> in the instruction stream. However, the two-mask version probably executes faster on modern CPUs because there is more inherent instruction-level parallelism in that version.</p>
+<p>-- Andreas Fredriksson (Lead Engine Programmer)</p>
+</body>
+</html>
