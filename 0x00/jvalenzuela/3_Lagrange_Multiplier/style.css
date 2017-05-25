@@ -1,0 +1,43 @@
+body {
+  font-family: "Georgia", "Verdana", "Lucida Grande", sans-serif;
+  margin: 20px auto;
+  width: 95%;
+  font-size: 70%;
+  line-height: 1.4;
+}
+
+@media (min-width: 400px) {
+  body { width: 90%; font-size: 75%; }
+}
+@media (min-width: 700px) {
+  body { width: 80%; font-size: 90%; }
+}
+@media (min-width: 850px) {
+  body { width: 70%; font-size: 100%; }
+}
+@media (min-width: 1000px) {
+  body { width: 60%; font-size: 110%; }
+}
+@media (min-width: 1100px) {
+  body { width: 50%; font-size: 115%;}
+}
+@media (min-width: 1450px) {
+  body { width: 40%; font-size: 125%; }
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #ddd;
+}
+table {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+tr td {
+  border-bottom:1pt solid black;
+  padding:6px;
+}
+th {
+  padding:6px;
+}
+
+0

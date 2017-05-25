@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+  <link rel = "stylesheet" type = "text/css" href = "../../../style.css" />
+</head>
+<body>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["AMSsymbols.js"] },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["AMSsymbols.js"] },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<h1 id="crossproducts">Cross Products</h1>
+<p>The cross product is an operation between two vectors that produces a third vector called a normal. The normal vector is orthogonal to the original two vectors. Given two vectors, $v$ and $w$ and $\theta$ as the angle between those vectors, the cross product $u$ can be visualized as:</p>
+<p><img src="CrossProduct.png" alt="Cross Product" /></p>
+<p>Unlike the dot product, the cross product is not commutative. If you change the order of the operands so that you have $w \times v$, then you have to negate the vector that is produced (it is a vector that is going in the opposite direction of $u$).</p>
+<p>$$v \times w = -(w \times v)$$</p>
+<p>The formula to calculate a cross product for three dimensional vectors $v$ and $w$ is:</p>
+<p>$$v \times w = (v_y w_z - w_y v_z, v_z w_x - w_z v_x, v_x w_y - w_x v_y) $$</p>
+<p>The length of the cross product describes the area formed by the parallelogram of which $v$ and $w$ are two of the sides.</p>
+<p>$$||v \times w|| = ||v||||w||\sin\theta$$</p>
+<p><img src="CrossProduct2.png" alt="Cross Product2" /></p>
+<p>One common use case for the cross product as mentioned in its definition is to find the normal to a surface. But just like the dot product, you can use the cross product to determine if $v$ and $w$ are parallel. As the angle between the vectors approaches zero, then the cross product will approach the zero vector. You can create a test resolving to a scalar by also using the dot product. If the vectors $v$ and $w$ are nearly parallel:</p>
+<p>$$(v \times w)\cdot(w \times v) \approx 0$$</p>
+<h2 id="furtherreading">Further Reading</h2>
+<p>Van Verth, James M., Lars M. Bishop. &quot;Vectors and Points.&quot; <em>Essential Mathematics for Games and Interactive Applications.</em> 3rd ed. Boca Raton: CRC, 2016. Web. ISBN 978-1482250923.</p>
+<p>-- Chris Edwards (Senior Engine Programmer)</p>
+</body>
+</html>

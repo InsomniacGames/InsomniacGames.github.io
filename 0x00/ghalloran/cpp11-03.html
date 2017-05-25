@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<h1 id="learning-c11-part-3">Learning C++11 (Part 3)</h1>
+<h2 id="scoped-enums">Scoped Enums</h2>
+<p>C++11 introduces <em>scoped enums</em> which reduces namespace pollution and provides values that are more strongly typed. Consider the following contrived case.</p>
+<p><strong>Old C++</strong></p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="kw">enum</span> NetworkSpeed
+  {
+    kSlow,
+    kFast,
+    kLudicrous
+  };
+
+  <span class="kw">enum</span> AirplaneSpeed
+  {
+    kSlow,
+    kFast,
+    kLudicrous
+  };</code></pre></div>
+<p>That won't compile because AirplaneSpeed redefines all the enum values. Instead we'd have to do something like this:</p>
+<p><strong>Old C++</strong></p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="kw">enum</span> NetworkSpeed
+  {
+    kNetworkSpeedSlow,
+    kNetworkSpeedFast,
+    kNetworkSpeedLudicrous
+  };
+
+  <span class="kw">enum</span> AirplaneSpeed
+  {
+    kAirplaneSpeedSlow,
+    kAirplaneSpeedFast,
+    kAirplaneSpeedLudicrous
+  };</code></pre></div>
+<p><strong>C++11</strong></p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="kw">enum</span> <span class="kw">class</span> NetworkSpeed
+  {
+    kSlow,
+    kFast,
+    kLudicrous
+  };
+
+  <span class="kw">enum</span> <span class="kw">class</span> AirplaneSpeed
+  {
+    kSlow,
+    kFast,
+    kLudicrous
+  };</code></pre></div>
+<p>Now in order reference each value you have to do something like <em>NetworkSpeed::kSlow</em> or <em>AirplaneSpeed::kFast</em>. This can be especially important if those enums aren't even defined in the same file.</p>
+<p>Along with better naming you get strong typing. Before an enum can be implicitly cast to an int, but with <em>scoped enums</em> if you want a different type you will have to do an explicit cast. The verboseness is a small price to pay for type safety.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  NetworkSpeed net_speed = NetworkSpeed::kSlow;
+  <span class="dt">int</span> temp = <span class="kw">static_cast</span>&lt;<span class="dt">int</span>&gt;(net_speed);</code></pre></div>
+<p>Note that the default underlying type for <em>scoped enums</em> is <em>int</em>, while <em>unscoped enums</em> do not have a default. Both support specifiying the underlying type.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="kw">enum</span> Fish;              <span class="co">// unscoped - no default type</span>
+  <span class="kw">enum</span> Cat: <span class="dt">int</span>;          <span class="co">// unscoped - explicitly an int</span>
+  <span class="kw">enum</span> <span class="kw">class</span> Dog;         <span class="co">// scoped - defaults to int</span>
+  <span class="kw">enum</span> <span class="kw">class</span> Snake: <span class="dt">char</span>; <span class="co">// scoped - explicitly a char</span></code></pre></div>
+<p>This leads to forward declaration. It requires that the enum has an underlying type. Obviously then, <em>scoped enums</em> can always be forward declared, but <em>unscoped enums</em> must have their underlying type specified.</p>
+<p>-- Garner Halloran (Engine Programmer)</p>
+</body>
+</html>

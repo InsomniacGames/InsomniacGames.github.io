@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p><strong>Getting More From Watch Windows</strong></p>
+<p>The various debug views in Visual Studios provide a wealth of information during debugging, and arguably the Autos/Locals/Watch windows are the ones that get used the most. But sometimes VS doesn’t have the context to display all the information about a variable, or does so in an undesired format. Here are a couple ways to get those windows to show you what you want to see.</p>
+<p><em>Format Specifiers</em></p>
+<p>Adding variables to the Watch window, by default, just shows you the same info you’d see in the Autos/Locals windows. The important difference is that you can edit the expressions in the Watch window, allowing you to do things like casting pointers to other types, call functions and evaluate expressions (be careful of side effects, they may alter the state of the program!), or display values in different formats with…format specifiers!</p>
+<p>Here’s an example of a dynamically-allocated integer array. Trying to view the contents of the array doesn’t yield the full array, just the first element. The view doesn’t have the context to know how big the array is:</p>
+<p><img src="01/media/image1.PNG" width="716" height="103" /></p>
+<p>But if you use the format specifier <em>n</em> or <em>[exp]</em> to tell it how many elements there are, it can show you the whole thing:</p>
+<p><img src="01/media/image2.PNG" width="720" height="256" /></p>
+<p>In this case, <em>size</em> is a variable that holds the size of the array. Note that raw numbers can be used as well (e.g. <em>array,5</em>) and exactly that many elements will be shown.</p>
+<p>Format specifiers can also be combined. Tacking on an <em>h</em> specifier to the previous expression causes the values to be displayed as lower-case hex:</p>
+<p><img src="01/media/image3.PNG" width="720" height="290" /></p>
+<p>Notice how the other expressions are unaffected by the <em>h</em> specifier. This means you can view the same expression in multiple formats all at the same time, which can be handy.</p>
+<p>There are many other format specifiers available to use. A full list of supported specifiers can be found here: <a href="https://msdn.microsoft.com/en-us/library/75w45ekt.aspx" class="uri">https://msdn.microsoft.com/en-us/library/75w45ekt.aspx</a>.</p>
+<p><em>Extensions</em></p>
+<p>Visual Studio extensions aren’t unique to Watch windows, but can be used to help display hard-to-visualize data. Here’s an example of a JSON object that we’d like to see the contents of:</p>
+<p><img src="01/media/image4.PNG" width="710" height="91" /></p>
+<p>Expanding the values (and down into child nodes) starts to yield a structure that’s going to be hard to piece together:</p>
+<p><img src="01/media/image5.PNG" width="720" height="302" /></p>
+<p>We <em>can</em> eventually decipher the JSON structure by carefully following the correct pointers around, but this would be extremely cumbersome and would quickly become unmanageable for an object with even just a few elements in it. To make viewing JSON objects much simpler, one of our lead engineers (Andreas Fredriksson) wrote an extension to allow us to view the contents as text, accessed by the magnifying glass icon next to the Type value:</p>
+<p><img src="01/media/image6.PNG" width="224" height="121" /></p>
+<p><img src="01/media/image7.PNG" width="720" height="248" /></p>
+<p>As you can see, this extension makes viewing JSON objects about as easy as could be. So if you have some particular expression/object that is difficult to view in the debugger, consider if a targeted extension could make your life easier and reduce your debugging headaches.</p>
+<p>Info on getting started with VS extensions can be found here: <a href="https://msdn.microsoft.com/en-us/library/bb166030.aspx" class="uri">https://msdn.microsoft.com/en-us/library/bb166030.aspx</a>.</p>
+<p>-- Evan Hatch (Associate Engine Programmer)</p>
+</body>
+</html>

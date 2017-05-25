@@ -1,0 +1,35 @@
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <style>
+
+    tbody tr:nth-child(odd) {
+        background-color: #ccc;
+    }
+    table {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    tr td {
+        border-bottom:1pt solid black;
+        padding:6px;
+    }
+    </style>
+</head>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["AMSsymbols.js"] },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<h2 id="furtherreading">Further reading</h2>
+
+<p>I relied mostly on Linear Algebra and Its Applications (Gilbert Strang, 3rd Edition, Brooks/Cole (1988)), especially for the derivation of the normal equations.</p>
+
+<p><a href="http://blog.demofox.org/2016/12/22/incremental-least-squares-curve-fitting/">This article</a> by &#8220;Demofox&#8221; has a nice breakdown of what <span class="math">\(A^{T}A\)</span> actually looks like and offers an incremental method of building it (at least, under some circumstances).</p>

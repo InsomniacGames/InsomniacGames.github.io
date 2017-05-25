@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<h1 id="unprojection">Unprojection</h1>
+<p>I recently caught a bug where there was some texture jitter. It was because of precision issues in world-space UVs on some geo far from the origin. So where was the precision issue? We were using an inverse matrix to go from device-dependent screen space (SV_POSITION) to world-space and by the time you pack that much math into the concatenations and inverses the floats deteriorate. While most of the observations below was already in the code, this round of inspection simplified it so thoroughly I found it very informative as a reminder of why projection matrices are set up the way they are and when you remember <em>all</em> stages of the transformation that it all boils away back to very simple concepts. I thought it was interesting enough to dedicate this month's post to it. In retrospect, matrices are complicated for what they're actually doing and the solution ended on preserve almost all precision of user input values.</p>
+<p>Also, every time we look at this code, it's like how the heck does this work, where's all the robustness, the complexity?! So now I'll be able to read my own bloggy notes here and be able to jump in right away on related matters rather than rederiving it.</p>
+<p>Let's take a look. Here is a version of the fixed-up, simplified version of how we reconstruct world-space in our pixel shaders.</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">float3 ScreenToView(float4 sv_pos)
+{
+  <span class="co">// View-space depth is in w, so assign it.</span>
+  float3 vs_pos;
+  vs_pos.z = sv_pos.w;
+
+  <span class="co">// Linear view-space depth is in w. We will attenuate XY by depth for </span>
+  <span class="co">// projection, but not for orthographic. Values are: (1,0) for perspective, </span>
+  <span class="co">// (0,1) for orthographic.</span>
+  <span class="dt">float</span> atten = sv_pos.w * <span class="va">g_UseDepth</span>.x + <span class="va">g_UseDepth</span>.y;
+
+  <span class="co">// SV_Position comes in, so convert those screen-space XYs to </span>
+  <span class="co">// screen-space UVs right away.</span>
+  float2 screen_uvs = sv_pos.xy * <span class="va">g_ScreenToUVs</span>;
+  
+  <span class="co">// I noticed that g_ScreenToUVs and g_ScreenToView.xy can be </span>
+  <span class="co">// combined too!</span>
+  float2 vs_xy = screen_uvs.xy * <span class="va">g_ScreenToView</span>.xy + <span class="va">g_ScreenToView</span>.zw;
+
+  <span class="co">// Scaling by depth for perspective, (atten is 1 for orthographic).</span>
+  vs_pos.xy = vs_pos * atten;
+  
+  <span class="cf">return</span> vs_pos;
+}
+
+float3 ScreenToWorld(float4 sv_pos)
+{
+  float3 vs_pos = ScreenToView(sv_pos);
+
+  <span class="co">// For view to world, no simple proportions will save us, so run it </span>
+  <span class="co">// through the inverse matrix.</span>
+  float3 ws_pos = mul(<span class="va">s_pos</span>, (float3x3)<span class="va">g_ViewToWorld</span>) + <span class="va">g_ViewToWorld</span>[<span class="dv">3</span>].xyz;
+
+  <span class="cf">return</span> ws_pos;
+}
+
+<span class="co">// Example usage:</span>
+float4 MyPixelShader(float4 sv_pos : SV_Position)
+{
+  float3 ws_pos = ScreenToWorld(sv_pos);
+  
+  <span class="cf">return</span> DoWorldSpaceLighting(ws_pos);
+}</code></pre></div>
+<p><code>g_ScreenToUVs</code> is <code>float2(1/screenResX, 1/screenResY)</code>. <code>g_UseDepth</code> ends up being <code>float2(1,0)</code> for perspective projections and <code>float2(0,1)</code> for orthographic projections - just a way of choosing to attenuate by depth or not. We'll get to that, and the most interesting <code>g_ScreenToView</code> values. A simple madd on X and Y gets us there, no need to include an all-concatenated screen-to-view matrix.</p>
+<p>So lets get started. The basics are that you concatenate some local-to-world world-to-view and view-to-clip space matrices. Then you also specify a viewport, so the HW tacks on a divide-by-w and the viewport transform before the pixel shader receives its system value position (SV_POSITION). when it does this: * View-space Z is kept in w. I'll show this through the projection matrix and just say that HW preserves it as well. * Clip space is [-w,w], NDC space is [-1,1] after HW does its w divide, then viewport transforms that into screen-space, but we undo that with the transform to screen-uvs [0,1], so I don't discuss it below.</p>
+<p>Keeping in mind these two transforms, let's get into the projection matrix. <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/bb205353(v=vs.85).aspx">Here's a D3D-style one</a>.</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">[  (<span class="dv">2</span>*n)/(r-l)       <span class="dv">0</span>            <span class="dv">0</span>       <span class="dv">0</span>  ]
+[       <span class="dv">0</span>       (<span class="dv">2</span>*n)/(t-b)       <span class="dv">0</span>       <span class="dv">0</span>  ]
+[  (l+r)/(l-r)  (t+b)/(b-t)      f/(f-n)  <span class="dv">1</span>  ]
+[       <span class="dv">0</span>            <span class="dv">0</span>       (n*f)/(n-f)  <span class="dv">0</span>  ]</code></pre></div>
+<p>So for a view-space position XvYvZv, its clip position is:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">Xc = Xv * (<span class="dv">2</span>*n)/(r-l)   +   Zv * ((l+r)/(l-r))
+Yc = Yv * (<span class="dv">2</span>*n)/(t-b)   +   Zv * ((t+b)/(b-t))
+<span class="co">// Zc = ignore this, we&#39;ll use Wc aka Zv</span>
+Wc = Zv * <span class="dv">1</span> <span class="co">// And here it is.</span></code></pre></div>
+<p>We can see we got Z as-is in W, and X and Y are related to a scale and bias. First let me work only on X since Y just substitutes top and bottom for left and right. Let's add in the rest of the transformation from clip to screen-space (sv_pos):</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">Xs = ( Xc/Wc  * <span class="dv">1</span>/<span class="dv">2</span> + <span class="dv">1</span>/<span class="dv">2</span> ) * ViewportScale</code></pre></div>
+<p>I know, that's not quite the order of operations, nor do I show center-pixel stuff, but we see from the original pixel shader that we're going to take out resolution scale anyway and leave center-pixel offsets be.</p>
+<p>Back to keeping it ever-simple! To get from NDC to UVs, this is what we want:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">U = ( Xc/Wc  * <span class="dv">1</span>/<span class="dv">2</span> + <span class="dv">1</span>/<span class="dv">2</span> )</code></pre></div>
+<p>Well let's get to solving the inverse of this... so substitute Xc and Wc:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">U = ( (Xv * (<span class="dv">2</span>*n)/(r-l)   +   Zv * ((l+r)/(l-r))) / Zv )  *  <span class="dv">1</span>/<span class="dv">2</span>  +  <span class="dv">1</span>/<span class="dv">2</span>
+
+(U * <span class="dv">2</span> - <span class="dv">1</span>) = (Xv * (<span class="dv">2</span>*n)/(r-l)   +   Zv * ((l+r)/(l-r))) / Zv  <span class="co">// Move NDC to screen UV </span>
+
+(U * <span class="dv">2</span> - <span class="dv">1</span>) = Xv/Zv * (<span class="dv">2</span>*n)/(r-l)   +   ((l+r)/(l-r))  <span class="co">// Apply division by Zv to terms</span>
+
+(U * <span class="dv">2</span> - <span class="dv">1</span>) - ((l+r)/(l-r)) = Xv/Zv * (<span class="dv">2</span>*n)/(r-l) <span class="co">// Move the skew ratio over</span>
+
+((U * <span class="dv">2</span> - <span class="dv">1</span>) - ((l+r)/(l-r))) * (r-l)/(<span class="dv">2</span>*n) = Xv/Zv <span class="co">// Multiply other side by inverse to move over the fov ratio</span>
+
+((U * <span class="dv">2</span> - <span class="dv">1</span>) - ((l+r)/(l-r))) * (r-l)/(<span class="dv">2</span>*n) = Xv/Zv</code></pre></div>
+<p>An aside for multiplying out the left side of the subtraction:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">(U * <span class="dv">2</span> - <span class="dv">1</span>) * (r-l)/(<span class="dv">2</span>*n)
+
+(U * <span class="dv">2</span> * ((r-l)/(<span class="dv">2</span>*n))) - ((r-l)/(<span class="dv">2</span>*n))
+
+(U * ((r-l)/n)) - ((r-l)/(<span class="dv">2</span>*n))</code></pre></div>
+<p>An aside for multiplying out the right side of the subtraction:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">(l+r)/(l-r) * (r-l)/(<span class="dv">2</span>*n)
+
+(l+r) * <span class="dv">1</span>/(l-r) * (l-r) * <span class="dv">-1</span>/(<span class="dv">2</span>*n) <span class="co">// flip the sign to swap r-l for l-r</span>
+
+(l+r) * <span class="dv">-1</span>/(<span class="dv">2</span>*n)
+
+-(l+r)/(<span class="dv">2</span>*n)</code></pre></div>
+<p>Now back together:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">Xv/Zv = (U * ((r-l)/n)) - ((r-l)/(<span class="dv">2</span>*n))  -  (-(l+r)/(<span class="dv">2</span>*n)) <span class="co">// pieces in position</span>
+
+Xv/Zv = (U * ((r-l)/n)) - ((r-l)/(<span class="dv">2</span>*n))  +  ((l+r)/(<span class="dv">2</span>*n)) = Xv/Zv  <span class="co">// reduce signs</span>
+
+Xv/Zv = (U * ((r-l)/n)) - (r+r)/(<span class="dv">2</span>*n)  <span class="co">// combine bias components and cancel l&#39;s</span>
+
+Xv/Zv = (U * ((r-l)/n)) - (<span class="er">2r</span>)/(<span class="dv">2</span>*n)  <span class="co">// further reduce</span>
+
+Xv/Zv = (U * ((r-l)/n)) - r/n  <span class="co">// further reduce</span>
+
+Xv = ((U * ((r-l)/n)) - r/n) * Zv  <span class="co">// and of course...</span></code></pre></div>
+<p>So we've got Xv in terms of U times some value, minus some other value: our madd! You can see we're still multiplying by view-space Z in the pixel shader, so only include the scale and bias:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">float4 <span class="va">g_ScreenToView</span>( (r-l) / n, ?, -r / n, ? );</code></pre></div>
+<p>Do it all again for Y:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">Yc = Yv * (<span class="dv">2</span>*n)/(t-b)   +   Zv * ((t+b)/(b-t)) <span class="co">// original from above</span>
+
+V = ( Yc/Wc  * <span class="dv">1</span>/<span class="dv">2</span> + <span class="dv">1</span>/<span class="dv">2</span> ) <span class="co">// screen-uvs review</span>
+
+V = ( (Yv * (<span class="dv">2</span>*n)/(t-b)   +   Zv * ((t+b)/(b-t))) / Zv )  *  <span class="dv">1</span>/<span class="dv">2</span>  +  <span class="dv">1</span>/<span class="dv">2</span> <span class="co">// with the substitutions</span>
+
+(V * <span class="dv">2</span> - <span class="dv">1</span>) = (Yv * (<span class="dv">2</span>*n)/(t-b)   +   Zv * ((t+b)/(b-t))) / Zv  <span class="co">// Move NDC to screen UV </span>
+
+(V * <span class="dv">2</span> - <span class="dv">1</span>) = Yv/Zv * (<span class="dv">2</span>*n)/(t-b)   +   ((t+b)/(b-t))  <span class="co">// Apply division by Zv to terms</span>
+
+(V * <span class="dv">2</span> - <span class="dv">1</span>) - ((t+b)/(b-t)) = Yv/Zv * (<span class="dv">2</span>*n)/(t-b) <span class="co">// Move the skew ratio over</span>
+
+((V * <span class="dv">2</span> - <span class="dv">1</span>) - ((t+b)/(b-t))) * (t-b)/(<span class="dv">2</span>*n) = Yv/Zv <span class="co">// Multiply other side by inverse to move over the fov ratio</span>
+
+((V * <span class="dv">2</span> - <span class="dv">1</span>) - ((t+b)/(b-t))) * (t-b)/(<span class="dv">2</span>*n) = Yv/Zv
+
+((V * <span class="dv">2</span> - <span class="dv">1</span>) * (t-b)/(<span class="dv">2</span>*n))  -  (((t+b)/(b-t)) * (t-b)/(<span class="dv">2</span>*n)) = Yv/Zv
+
+(V * <span class="dv">2</span> * (t-b)/(<span class="dv">2</span>*n)) - (t-b)/(<span class="dv">2</span>*n) - (((t+b)/(b-t)) * (t-b)/(<span class="dv">2</span>*n)) = Yv/Zv
+
+(V * (t-b)/n) - (t-b)/(<span class="dv">2</span>*n) - (((t+b)/(b-t)) * -(b-t)/(<span class="dv">2</span>*n)) = Yv/Zv
+
+(V * (t-b)/n) - (t-b)/(<span class="dv">2</span>*n) - -(t+b)/(<span class="dv">2</span>*n) = Yv/Zv
+
+(V * (t-b)/n) - (t-b)/(<span class="dv">2</span>*n) + (t+b)/(<span class="dv">2</span>*n) = Yv/Zv
+
+(V * (t-b)/n) - (t-b+t+b)/(<span class="dv">2</span>*n) = Yv/Zv
+
+(V * (t-b)/n) - (<span class="dv">2</span>*t)/(<span class="dv">2</span>*n) = Yv/Zv
+
+Yv/Zv = (V * (t-b)/n) - t/n
+
+Yv = ((V * (t-b)/n) - t/n) * Zv</code></pre></div>
+<p>So finish packing the float4:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">float4 <span class="va">g_ScreenToView</span>( (r-l) / n, (t-b) / n, -r / n, -t / n );</code></pre></div>
+<p>Look at that! The float4 is composed of nothing but input parameters, so no real modification is done to the data by the engine per-sae. Passing the buck a bit, but compared to using the inverse clip matrix with more math bolted in for getting out of screen-space, it's a lot simpler and more precision-preserving.</p>
+<h2 id="proprietary-notes">Proprietary Notes</h2>
+<p>I started with a D3D-style matrix because that's easily referenced and most folks tend to think of {l,r,t,b} as distances to the edges of the screen: the near plane.</p>
+<p>Insomniac's projection actually removes that pesky divide-by-n since the near clip isn't always exactly the screen anyway, so if you're being arbitrary, why not choose a better arbitrary value, like 1?</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp"><span class="co">// Insomniac projection:</span>
+<span class="co">// Note - n has not been pre-multiplied into l, r, t and b.  So these values </span>
+<span class="co">//        represent the left, right, top, and bottom edges of the frustum at </span>
+<span class="co">//        1 meter, not at n.</span>
+[      <span class="dv">2</span>/(r-l)       <span class="dv">0</span>            <span class="dv">0</span>       <span class="dv">0</span>  ]
+[       <span class="dv">0</span>           <span class="dv">2</span>/(t-b)       <span class="dv">0</span>       <span class="dv">0</span>  ]
+[  (l+r)/(l-r)  (t+b)/(b-t)      f/(f-n)  <span class="dv">1</span>  ]
+[       <span class="dv">0</span>            <span class="dv">0</span>       (n*f)/(n-f)  <span class="dv">0</span>  ]</code></pre></div>
+<p>And that gets rid of n. This is all carefully set up for VR. The more user-friendly horizontal FoV and/or vertical FoV are ratios anyway: the same angle at 1 as at n. See <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/bb205350(v=vs.85).aspx">D3D's listing</a> how the values are not related to the near plane.</p>
+<p>After all is said and done, we're really talking about undoing the frustum's widening at distance into the boxy space of the screen. For that we only need scaling by width and height, and offset by an origin.</p>
+<p>NOTE: I may've got an axis or two flipped by showing our pixel shader and reducing the D3D math because we also keep view-space similar to screen-space in that we have +Y <em>down</em>.</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp"><span class="co">// Note - View (rotated 180 degrees around x axis from world coords):</span>
+<span class="co">//</span>
+<span class="co">//          Z</span>
+<span class="co">//         /</span>
+<span class="co">//        /___X</span>
+<span class="co">//        |</span>
+<span class="co">//        |</span>
+<span class="co">//        Y</span>
+<span class="co">//</span>
+<span class="co">//</span>
+<span class="co">// - Post divide-by-w clip space (y is inverted):</span>
+<span class="co">//</span>
+<span class="co">//                ______(1, 1, 1)</span>
+<span class="co">//              /      /|</span>
+<span class="co">//             /_____ / |</span>
+<span class="co">//            |      |  |</span>
+<span class="co">//            |      |  |</span>
+<span class="co">//            |      | /</span>
+<span class="co">//            |______|/</span>
+<span class="co">//  (-1, -1, 0)</span>
+<span class="co">//</span>
+<span class="co">//</span></code></pre></div>
+<p>So our g_ScreenToView internally is consequently:</p>
+<div class="sourceCode"><pre class="sourceCode c++"><code class="sourceCode cpp">float4 <span class="va">g_ScreenToView</span> = float4( l - r, b - t, l, t );</code></pre></div>
+<p>Scale by width, height, offset by top-left corner for origin. So simple!</p>
+<p>-- Tony Arciuolo (Senior Engine Programmer)</p>
+</body>
+</html>

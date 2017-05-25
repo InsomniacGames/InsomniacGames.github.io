@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style>
+      tbody {
+        font-size: 80%;
+      }
+  
+      tbody tr:nth-child(odd) {
+        background-color: #ccc;
+      }
+      table {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+      tr td {
+        border-bottom:1pt solid black;
+        padding:6px;
+      }
+      th {
+        padding:6px;
+      }
+  </style>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+  <link rel = "stylesheet" type = "text/css" href = "../../../style.css" />
+</head>
+<body>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: { extensions: ["AMSsymbols.js"] },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      TeX: { extensions: ["AMSsymbols.js"] },
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      }
+    });
+</script>
+<h1 id="thelagrangian">The Lagrangian</h1>
+<p>There’s an equation that comes up a lot in optimization literature contexts. It’s part of the Karush–Kuhn-Tucker (KKT) conditions for first-order optimality for systems with multiple equality and inequality constraints. It’s used in dynamics. I’m talking about the Lagrangian. Just seeing where it pops up as been a useful touchstone in further reading for me.</p>
+<p>The first exposure most of us had to the Lagrangian is through Lagrange Multipliers. Before that, a very brief refresher on the derivative and function extrema:</p>
+<h2 id="functionextremaandthetangent">Function extrema and the tangent</h2>
+<p>The extrema of a continuous, differentiable function <span class="math">\(f(x)\)</span> along the interval <span class="math">\([a, b]\)</span> occurs at one of the <em>critical points</em>, which are the endpoints and any point between <span class="math">\(a, b\)</span> where <span class="math">\(f'(x)=0\)</span>.</p>
+<figure>
+<p><img src="Extrema.png" /></p>
+</figure>
+<p>Here we see a graph of <span class="math">\(f(x) = \frac{1}{2}x^3 - 2x^2 + 2x + 0.41\)</span> between –3 and 3. The points at which the tangent of <span class="math">\(f\)</span> is 0 have the blue lines. If we want to find either the maximum or minimum value of <span class="math">\(f\)</span> over 0 to 3, it suffices to test the value of <span class="math">\(f\)</span> at 0, those two points (<span class="math">\(x=\frac{2}{3}, 2\)</span>), and 3. This follows from the fact that the tangent before an extrema and the tangent after must have different signs, and since <span class="math">\(f\)</span> is continuous the point where the tangent switches signs (i.e., is 0) is an extrema.</p>
+<p>Similarly you can distinguish whether an extrema is a minimum or maximum by testing the second derivative: if <span class="math">\(f''\)</span> is negative, then the tangent was itself decreasing and on its way to a maximum.</p>
+<h2 id="lagrangemultipliers">Lagrange Multipliers</h2>
+<p>The Lagrange multipler first shows up in multivariable calculus in this context: Given a function f(\textbf{x}) and a constraint g(\textbf{x}), how do we find the maximum value of f such that <span class="math">\(g(\textbf{x}) = 0\)</span>? To find the answer we first to understand the <em>gradient</em> of <span class="math">\(f\)</span>.</p>
+<p>The gradient helps generalize the concept of the tangent to arbitrary dimensions. Instead of a scalar that defines the tangent line at each point, the gradient is a vector that points in the direction of greatest change for a function. It’s normal to any level curve and so defines the tangent plane in which any tangent line for any level curve must lie. Given <span class="math">\(f(x,y,z)\)</span> the gradient ∇f is defined as <span class="math">\(\begin{bmatrix} \frac{f}{x} &amp; \frac{f}{y} &amp; \frac{f}{z} \end{bmatrix}\)</span>.</p>
+<p>Here’s an image of the gradient at a point on a sphere:</p>
+<figure>
+<p><img src="Sphere.png" /></p>
+</figure>
+<p>The red arrow illustrates the ∇f at a point <span class="math">\(p\)</span>. A level surface, remember, is the set of points where a function takes the same value. A sphere, for example, is described by the level surface <span class="math">\(x^2+y^2+z^2=k\)</span>. In arbitrary dimensions the level surface is called a level curve.</p>
+<p>Back to the original question: Given <span class="math">\(f(\textbf{x})\)</span> and <span class="math">\(g(\textbf{x})=0\)</span> it turns out, if <span class="math">\(f\)</span> and <span class="math">\(g\)</span> intersect at all, <span class="math">\(f\)</span> takes a maximum at a point <span class="math">\(p\)</span> where the gradients for <span class="math">\(f\)</span> and <span class="math">\(g\)</span> are parallel.</p>
+<p>Imagine any curve on the sphere that intersects <span class="math">\(p\)</span>. At <span class="math">\(p\)</span>, the gradient for all curves will be normal to the surface. Another way of putting it is that the tangent of that curve at <span class="math">\(p\)</span> will have to lie in the plane whose basis vectors are orthogonal to (in the null space of) ∇f.</p>
+<p><span class="math">\[\nabla f = \lambda\nabla g\]</span></p>
+<p>To see this, consider <span class="math">\(f(\textbf{x})\)</span> and <span class="math">\(g(\textbf{x})\)</span> such that <span class="math">\(g(\textbf{x})=0\)</span> intersects <span class="math">\(f\)</span>. The resulting intersection is a level curve <span class="math">\(g(\textbf{x})=0\)</span>, and so ∇g will be normal along its path. For a point <span class="math">\(p_0\)</span> to be the maximum value of <span class="math">\(f\)</span> on this path, then any move along <span class="math">\(f\)</span> away from <span class="math">\(p_0\)</span> must decrease the value of f. Since this is true no matter what curve we picked to go through this path, then all tangents at that point lie in a plane and equivalently, ∇f at <span class="math">\(p_0\)</span> is normal to the curve.</p>
+<p>As ∇g and ∇f are normal to the curve at <span class="math">\(p_0\)</span>, their respective tangent planes represent the same space. If <span class="math">\(p_0\)</span> exists, <span class="math">\(∇g=\lambda∇f\)</span>.</p>
+<p>An alternative way of thinking about it follows from calculus. Consider the path through <span class="math">\(f\)</span> such that <span class="math">\(g(\textbf{x})=0\)</span>. If we parameterize <span class="math">\(g(\textbf{x})\)</span> with <span class="math">\(x=h(t), y=j(t), z=k(t)\)</span> then this path is <span class="math">\(f(h(t), j(t), k(t))\)</span>. The derivative with respect to t is then</p>
+<p><span class="math">\[\frac{df}{dt} = \frac{\partial f}{\partial x} \frac{dh}{dt} + \frac{\partial f}{\partial y} \frac{dj}{dt} + \frac{\partial f}{\partial z} \frac{dk}{dt} = \nabla f \cdot v\]</span></p>
+<p>where <span class="math">\(v\)</span> is the velocity vector.</p>
+<p>The maximum along this path occurs when the derivative <span class="math">\(\frac{df}{dt}=0\)</span>, or <span class="math">\(\nabla f \cdot v = 0\)</span>, that is, when the gradient is orthogonal to the tangent of <span class="math">\(g(\textbf{x})=0\)</span>.</p>
+<p>The <span class="math">\(\lambda\)</span> in the relationship <span class="math">\(\nabla f = \lambda\nabla g\)</span> is called the <em>Lagrange Multiplier</em>. We know that the gradients, if a extrema point exists where <span class="math">\(f\)</span> and <span class="math">\(g\)</span> intersect, must occur when <span class="math">\(\nabla f\)</span> and <span class="math">\(\nabla g\)</span> are parallel. But their exact proportions are unknown. Indeed, their gradients may even be pointing in opposite (but parallel) directions.</p>
+<p>This provides us with a equation for each dimension of x. We need one more equation to account for the additional unknown, λ. In this case we’ll can use the constraint as our last equation, giving us a balanced system which we can solve using the usual methods.</p>
+<h2 id="anexample">An Example</h2>
+<p>Here’s an image that illustrates the relationship in two dimensions. Consider the circle centered at <span class="math">\((1,1)\)</span> bounded by the line <span class="math">\(x + y = 4\)</span>. How big can we make the radius of the circle and have it all on one side of the line? (Equivalently, given a circle that just touches a line, at what point do they intersect?)</p>
+<figure>
+<p><img src="Lagrange0.png" /></p>
+</figure>
+<p>To setup the problem, given</p>
+<p><span class="math">\[\begin{align} f(\textbf{x}) &amp;= (x-1)^2 + (y-1)^2 \\ g(\textbf{x}) &amp;= x + y - 4 \end{align}\]</span></p>
+<p>…we’re looking to maximize <span class="math">\(f(\textbf{x})\)</span> such that <span class="math">\(g(\textbf{x})=0\)</span>. We’ll do so by finding the spot where f and g have parallel tangents proportional to some <span class="math">\(\lambda\)</span>, the Langrange Multiplier. More concisely we express this as <span class="math">\(\nabla f = \lambda\nabla g\)</span>.</p>
+<p>After applying the gradient via <span class="math">\(\nabla f = \lambda\nabla g\)</span>, we have</p>
+<p><span class="math">\[\begin{align} 2 x - 2 &amp;= \lambda \\ 2 y - 2 &amp;= \lambda \end{align}\]</span></p>
+<p>…leaving two equations and three unknowns. We can use g to provide the necessary third equation:</p>
+<p><span class="math">\[x + y = 4\]</span></p>
+<p>This system can easily be solved via substitution, giving us <span class="math">\(\lambda = 2\)</span> and <span class="math">\(x=y=2\)</span>. This gives a maximum radius of <span class="math">\(\sqrt{2}\)</span> (Why not <span class="math">\(2\)</span>? Because we characterized f as <span class="math">\(x^2+y^2\)</span>, so we were actually solving for <span class="math">\(radius^2\)</span>).</p>
+<p>This presentation of the Lagrange multiplier is actually an application of what’s called the <a href="https://en.wikipedia.org/wiki/Lagrange_multiplier">Lagrangian function</a>. We can use the Lagrangian to reexpress the problem using one equation:</p>
+<p><span class="math">\[\mathscr{L}(\textbf{x}, \lambda) = f(\textbf{x}) - \lambda g(\textbf{x})\]</span></p>
+<p>To which we apply the gradient, giving</p>
+<p><span class="math">\[\nabla\mathscr{L}(\textbf{x}, \lambda) = \begin{bmatrix} \frac{\partial f}{\partial x} - \lambda \frac{\partial g}{\partial x} &amp; \frac{\partial f}{\partial y} - \lambda \frac{\partial g}{\partial y} &amp; -g \end{bmatrix} = 0\]</span></p>
+<p>… giving us the requisite number of equations to unknowns.</p>
+<h2 id="secondexample">Second example</h2>
+<p>Problem setup isn’t mechanical, it requires some thought. Consider the question of the intersection of the sphere <span class="math">\(x^2+y^2+z^2=2\)</span> and plane <span class="math">\(z = x+y\)</span> in 3d.</p>
+<figure>
+<p><img src="SpherePlane.png" /></p>
+</figure>
+<p>A little substitution gives us a set of points along the ellipse of intersection.</p>
+<p><span class="math">\(x^2+y^2+(x-y)^2=2 \implies x^2+y^2+x^2-2xy+y^2=2 \implies x^2-xy+y^2=1\)</span></p>
+<p>Let’s attempt to solve using the Lagrange Multiplier method with <span class="math">\(f=x^2+y^2+z^2-2\)</span> and <span class="math">\(g=x+y-z\)</span>. Differentiating gives us</p>
+<p><span class="math">\[\begin{align} \nabla f &amp;= \begin{bmatrix} 2x &amp; 2y &amp; 2z \end{bmatrix} \\ \nabla g &amp;= \lambda \begin{bmatrix} 1 &amp; 1 &amp; -1 \end{bmatrix} \end{align}\]</span></p>
+<p>with a system of three equations with four unknowns.</p>
+<p><span class="math">\[\begin{align} 2x &amp;= \lambda \\ 2y &amp;= \lambda \\ 2z &amp;= \lambda \end{align}\]</span></p>
+<p>See what happens if we use the constraint function as the last equation?</p>
+<p><span class="math">\[\begin{align} x+y-z &amp;= 0 \\ \frac{\lambda}{2} + \frac{\lambda}{2} - \frac{\lambda}{2} &amp;= 0 \end{align}\]</span></p>
+<p>…giving us <span class="math">\(\lambda\)</span> of 0! The problem here was the selection of the last equation: the first three equations tell us that if a maximum <span class="math">\(p=\begin{bmatrix} x &amp;y &amp;z\end{bmatrix}\)</span> exists, <span class="math">\(x=y=z=\frac{\lambda}{2}\)</span> that point. The last equation enforces that that point also lies in the plane. As a result, we solve for a value of x,y,z that lies in the plane with all points equal - that is, 0.</p>
+<p>Substituting instead the sphere equation give us:</p>
+<p><span class="math">\[\begin{align} x^2+y^2+z^2 &amp;= 2 \\ (\frac{\lambda}{2})^2 + (\frac{\lambda}{2})^2 + (\frac{-\lambda}{2})^2 &amp;= 2 \\ \frac{3 \lambda^2}{4} &amp;= 2 \\ \lambda^2 &amp;= \frac{8}{3} \\ \lambda &amp;= \pm \sqrt{\frac{8}{3}} \end{align}\]</span></p>
+<p>Giving values of <span class="math">\(\pm \sqrt{\frac{2}{3}}\)</span> for x, y, and z, a solution to the original problem.</p>
+<h2 id="multipleconstraints">Multiple constraints</h2>
+<p>It should be clear how to extend the method to multiple dimensions, but what about multiple constraint functions? Consider <span class="math">\(f(\textbf{x})\)</span> subject to <span class="math">\(g(\textbf{x})\)</span>, <span class="math">\(h(\textbf{x})\)</span>. Unless <span class="math">\(\nabla g\)</span>, <span class="math">\(\nabla h\)</span> are parallel, we can solving this problem with multiple constraints using Lagrangian multipliers. Expressed as a Lagrangian:</p>
+<p><span class="math">\[\mathscr{L}(\textbf{x}, \lambda, \mu) = f(\textbf{x}) - \lambda g(\textbf{x}) - \mu h(\textbf{x})\]</span></p>
+<p>Taking the partial derivative of <span class="math">\(\mathscr{L}\)</span> (and assuming <span class="math">\(\textbf{x} = (x, y)\)</span>) gives us four equations:</p>
+<p><span class="math">\[\begin{align} {\frac{\partial\mathscr{L}}{\partial x}} &amp;= \frac{\partial f(\textbf{x})}{\partial x} - \lambda \frac{\partial g(\textbf{x})}{\partial x} - \mu \frac{\partial h(\textbf{x})}{\partial x} \\ {\frac{\partial\mathscr{L}}{\partial y}} &amp;= \frac{\partial f(\textbf{x})}{\partial y} - \lambda \frac{\partial g(\textbf{x})}{\partial y} - \mu \frac{\partial h(\textbf{x})}{\partial y} \\ {\frac{\partial\mathscr{L}}{\partial \lambda}} &amp;= -g(\textbf{x}) \\ {\frac{\partial\mathscr{L}}{\partial \mu}} &amp;= -h(\textbf{x}) \end{align}\]</span></p>
+<p>For example, what are the closest points between the circle <span class="math">\(x^2+y^2=1\)</span> centered around <span class="math">\(2, 2\)</span> and the ellipse <span class="math">\(\frac{2}{3}s^2 + \frac{2}{5}st + \frac{2}{3}t^2 + \frac{3}{4}s+\frac{1}{2}t=2\)</span>? (s and t here correspond to the Cartesian x and y, we picked different letters to distinguish them from the point on the circle).</p>
+<p>Since we’re trying to find the closest point, the function we’re looking to optimize will be the distance function. Since we’re looking for the minimum we can just flip the sign.</p>
+<p><span class="math">\[f(x,y,s,t) = -((x-s)^2 + (y-t)^2)\]</span></p>
+<p>Since we are comparing points on the boundaries of our shapes, our constraint functions are simply the level curves of the implicit form (set equal to 0).</p>
+<p><span class="math">\[\begin{align} g(x,y,s,t) &amp;= (x-2)^2+(y-2)^2-1 \\ h(x,y,s,t) &amp;= \frac{2}{3}s^2 + \frac{2}{5}st + \frac{2}{3}t^2 + \frac{3}{4}s+\frac{1}{2}t-2 \end{align}\]</span></p>
+<p>Giving us <span class="math">\[\begin{align} \mathscr{L}(\textbf{x}, \lambda, \mu) &amp;= -((x-s)^2 + (y-t)^2) - \lambda ((x-2)^2+(y-2)^2-1) - \mu (\frac{2}{3}s^2 + \frac{2}{5}st + \frac{2}{3}t^2 + \frac{3}{4}s+\frac{1}{2}t-2) \\ {\frac{\partial\mathscr{L}}{\partial x}} &amp;= (s-x) - \lambda (x-1) \\ {\frac{\partial\mathscr{L}}{\partial y}} &amp;= (t-y) - \lambda (y-1) \\ {\frac{\partial\mathscr{L}}{\partial s}} &amp;= 2(x-s) - \mu \frac{4}{3}s + \frac{2}{5}t + \frac{3}{4} \\ {\frac{\partial\mathscr{L}}{\partial t}} &amp;= 2(y-t) - \mu \frac{4}{3}s + \frac{2}{5}t + \frac{1}{2} \\ {\frac{\partial\mathscr{L}}{\partial \lambda}} &amp;= -((x-2)^2+(y-b)^2-1) \\ {\frac{\partial\mathscr{L}}{\partial \mu}} &amp;= -(\frac{2}{3}s^2 + \frac{2}{5}st + \frac{2}{3}t^2 + \frac{3}{4}s+\frac{1}{2}t-2) \end{align}\]</span></p>
+<p>Setting the left hand side to 0 gives us a non-linear system of equations. No fun to solve by hand but easy enough to plug into a numeric solver.</p>
+<p><span class="math">\[\begin{align} x ~&amp;= 1.265081 \\ y ~&amp;= 1.321845 \\ s ~&amp;= 0.725846 \\ t ~&amp;= 0.824260 \end{align}\]</span></p>
+<h2 id="bibliography">Bibliography</h2>
+<h5 id="georgebrintonthomasrossl.finneycalculusandanalyticgeometry9thedition1996.">George Brinton Thomas, Ross L. Finney, Calculus and analytic geometry (9th Edition), 1996.</h5>
+<p>My go-to calculus reference.</p>
+<h5 id="gradient:proofthatitisperpendiculartolevelcurvesandsurfaces18.02scmultivariablecalculusfall2010.massachusettsinstituteoftechnology:mitopencousewarehttp:ocw.mit.eduaccessedmarch242017.license:creativecommonsby-nc-sa"><a href="https://ocw.mit.edu/courses/mathematics/18-02sc-multivariable-calculus-fall-2010/2.-partial-derivatives/part-b-chain-rule-gradient-and-directional-derivatives/session-36-proof/MIT18_02SC_notes_19.pdf">Gradient: proof that it is perpendicular to level curves and surfaces, 18.02SC Multivariable Calculus, Fall 2010. (Massachusetts Institute of Technology: MIT OpenCouseWare), http://ocw.mit.edu (Accessed March 24, 2017)). License: Creative Commons BY-NC-SA</a></h5>
+<p>In case you need convincing that the gradient is, indeed, perpendicular to a level curve here you go.</p>
+<p>-- Joe Valenzuela (Senior Engine Programmer)</p>
+</body>
+</html>

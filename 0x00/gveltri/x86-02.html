@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+     <link rel = "stylesheet" type = "text/css" href = "../../style.css" />
+</head>
+<body>
+<p>First, I downloaded and used FASM to assemble files. FASM can be downloaded from flatassembler.net. It's pretty straightforward; extract the contents to a folder, add that folder (which contains FASM.exe) to the PATH environment variable, and add the INCLUDE subfolder to the INCLUDE path environment variable.</p>
+<p>To tell FASM to compile a Windows executable, you must do:</p>
+<pre><code>format PE console    ; This tells FASM that the output should be a portable executable console application.
+entry start          ; This tells FASM where the program begins
+include &#39;win32a.inc&#39; ; This is included with FASM and defines things needed to make a Windows executable.
+
+; This declares the part of the file that is (readable) executable code
+section &#39;.text&#39; code readable executable
+
+; This is where the actual program begins.  Everything else is boilerplate.
+start:
+
+; This is the import section.
+section &#39;.idata&#39; import data readable
+import kernel,\
+       ExitProcess,&#39;ExitProcess&#39;</code></pre>
+<p>Note that there's no actual assembly code in the lines above. Everything above is either a directive known by FASM or defined by the win32a.inc include.</p>
+<p>-- Giac Veltri (Senior Engine Programmer)</p>
+</body>
+</html>
