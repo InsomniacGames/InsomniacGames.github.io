@@ -1,7 +1,0 @@
-Leadership – planning ahead
-
-One of the areas I struggle with as a lead is planning ahead. In Core Support, often our duties change day by day depending on what’s needed at the moment. Regardless, you still need to organize and plan for what may come up. With tools releases, we schedule them out to release to the company, however we still need to be flexible with those releases depending on the needs of production and when they need a feature or fix, or if their milestone goes longer than expected and we need to hold off on a release. This can throw a wrench in the schedule which can lead to shuffling things around or tightening a future release. 
-
-Planning an individual’s task can be even more challenging when taking into consideration one’s strengths and weaknesses. No matter how much you plan for a task, if that person isn’t the right one for it, can definitely backfire and waste potentially valuable time. 
-
-My take is, it’s important to plan ahead, but it’s also important to be smart about it and be flexible enough to change your planning when something unexpected will arise. In our case, something unexpected is actually fairly consistent so we always try and take that into account.
